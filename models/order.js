@@ -1138,34 +1138,30 @@ baseSchema.statics.generatePdfById = function(id, model, callback) {
 
 								var title = "";
 
-								var model = 'order'; //Latex model
-
 								if (self.query.proforma)
 										title = "Facture pro forma";
 								else
 										switch (doc._type) {
 												case 'orderCustomer':
 														title = 'Commande';
-														model = "order";
 														break;
 												case 'orderSupplier':
 														title = 'Commande fournisseur';
-														model = "order_supplier";
 														break;
 												case 'quotationCustomer':
 														title = 'Devis';
-														model = "offer";
 														break;
 												case 'quotationSupplier':
 														title = 'Demande d\'achat';
-														model = "offer_supplier";
 														break;
 										}
+
+
 
 								// check if discount
 								for (var i = 0; i < doc.lines.length; i++) {
 										if (doc.lines[i].discount > 0) {
-												model += "_discount";
+												//model += "_discount";
 												discount = true;
 												break;
 										}
@@ -1186,6 +1182,9 @@ baseSchema.statics.generatePdfById = function(id, model, callback) {
 												if (discount)
 														tabLines.push({
 																keys: [{
+																		key: "seq",
+																		type: "string"
+																}, {
 																		key: "ref",
 																		type: "string"
 																}, {
@@ -1213,6 +1212,9 @@ baseSchema.statics.generatePdfById = function(id, model, callback) {
 												else
 														tabLines.push({
 																keys: [{
+																		key: "seq",
+																		type: "string"
+																}, {
 																		key: "ref",
 																		type: "string"
 																}, {
@@ -1239,6 +1241,7 @@ baseSchema.statics.generatePdfById = function(id, model, callback) {
 														switch (doc.lines[i].type) {
 																case 'SUBTOTAL':
 																		tabLines.push({
+																				seq:"",
 																				ref: "",
 																				description: "\\textbf{Sous-total}",
 																				tva_tx: null,
@@ -1250,6 +1253,7 @@ baseSchema.statics.generatePdfById = function(id, model, callback) {
 																		break;
 																case 'COMMENT':
 																		tabLines.push({
+																				seq : "",
 																				ref: "",
 																				description: /*"\\textbf{" + doc.lines[i].refProductSupplier + "}" + */ (doc.lines[i].description ? "\\\\" + doc.lines[i].description : ""),
 																				tva_tx: null,
@@ -1261,6 +1265,7 @@ baseSchema.statics.generatePdfById = function(id, model, callback) {
 																		break;
 																default:
 																		tabLines.push({
+																				seq: doc.lines[i].numLine,
 																				ref: doc.lines[i].product.info.SKU.substring(0, 12),
 																				description: "\\textbf{" + doc.lines[i].product.info.langs[0].name + "}" + (doc.lines[i].description ? "\\\\" + doc.lines[i].description : "") + (doc.lines[i].total_taxes.length > 1 ? "\\\\\\textit{" + doc.lines[i].total_taxes[1].taxeId.langs[0].name + " : " + doc.lines[i].product.taxes[1].value + " \\euro}" : ""),
 																				tva_tx: (doc.lines[i].total_taxes.length ? doc.lines[i].total_taxes[0].taxeId.rate : 0),
@@ -1383,7 +1388,7 @@ baseSchema.statics.generatePdfById = function(id, model, callback) {
 												if (doc.dateOf && doc.dateTo)
 														period = "\\textit{P\\'eriode du " + moment(doc.dateOf).format(CONFIG('dateformatShort')) + " au " + moment(doc.dateTo).format(CONFIG('dateformatShort')) + "}\\\\";
 
-												Latex.Template(model + ".tex", doc.entity)
+												Latex.Template(modelPdf.latex, doc.entity)
 														.apply({
 																"NUM": {
 																		"type": "string",
@@ -1471,8 +1476,13 @@ baseSchema.statics.generatePdfById = function(id, model, callback) {
 																		"type": "area",
 																		"value": reglement
 																},
-																"TABULAR": tabLines,
-																"TOTAL": tabTotal,
+																"TABULAR": {
+																		template: (discount ? "tablePriceDiscountLines" : "tablePriceLines"),
+																		value: tabLines
+																},
+																"TOTAL": {
+																		value: tabTotal
+																},
 																"APAYER": {
 																		"type": "euro",
 																		"value": doc.total_ttc || 0
@@ -1492,6 +1502,7 @@ baseSchema.statics.generatePdfById = function(id, model, callback) {
 																		'pdfs.modelPdf': modelPdf._id
 																}, {
 																		$set: {
+																				'pdfs.$.filename': doc.ref + modelPdf.filename,
 																				"pdfs.$.datec": new Date()
 																		}
 																}, {
@@ -1503,13 +1514,15 @@ baseSchema.statics.generatePdfById = function(id, model, callback) {
 																		if (res && res.nModified)
 																				return wCb(); // Already exist and updated
 
+																		console.log(modelPdf);
+
 																		//create new entry in order
 																		self.update({
 																				_id: doc._id
 																		}, {
 																				$push: {
 																						"pdfs": {
-																								filename: doc.ref + modelPdf.name,
+																								filename: doc.ref + modelPdf.filename,
 																								fileId: doc._id + "_" + modelPdf.code + ".pdf",
 																								modelPdf: modelPdf._id,
 																								datec: new Date()
@@ -1847,6 +1860,7 @@ baseSchema.statics.getById = function(id, callback) {
 										.populate('shippingMethod', '_id name')
 										.populate('logisticMethod', '_id name weight price')
 										.populate('workflow', '_id name status')
+										//.populate('pdfs.modelPdf', '_id code')
 										.exec(wCb);
 						},
 						function(order, wCb) {

@@ -131,9 +131,10 @@ exports.install = function(options) {
 		F.route('/erp/api/order/file/{Id}/{fileName}', object.deleteFile, ['delete', 'authorize']);
 		F.route('/erp/api/order/pdf/{orderId}', object.pdf, ['authorize']);
 		F.route('/erp/api/order/pdf/{orderId}', object.generatePdf, ['put', 'authorize']);
+		F.route('/erp/api/offer/pdf/{orderId}', object.generatePdf, ['put', 'authorize']);
 		F.route('/erp/api/order/download/{:id}', object.download);
 
-		F.route('/erp/api/offer/pdf/{orderId}', object.pdf, ['authorize']);
+		//F.route('/erp/api/offer/pdf/{orderId}', object.pdf, ['authorize']);
 };
 
 function Object() {}
@@ -503,10 +504,26 @@ Object.prototype = {
 
 				async.waterfall([
 						function(wCb) {
+							// Calcul numLine for pdf
+							if(!self.body.lines || !self.body.lines.length)
+								return wCb();
+
+								let cpt = 1;
+								async.forEachSeries(self.body.lines, function(elem, aCb){
+
+										if(elem.type == 'product' && !elem.isDeleted)
+											elem.numLine = cpt++;
+
+										return aCb();
+								}, function(err){
+									return wCb(err, self.body.lines);
+								});
+						},
+						function(lines, wCb) {
 								var ProductModel = MODEL('product').Schema;
+								//console.log(lines);
 
 								//First refresh KIT
-								var lines = self.body.lines;
 								rows = lines;
 
 								if (self.body.Status != 'DRAFT')

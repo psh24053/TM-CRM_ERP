@@ -1,9 +1,5 @@
 \newcommand{\FOOT}{--FOOT--}
 
-%%ligne de tableau avec \\
-\newcommand{\specialcell}[2][c]{
-	\parbox[#1]{7.7cm}{#2}}
-	
 \begin{tabular}{p{9cm} p{8cm}}
     \vspace{0pt} 
     \includegraphics[width=7.5cm]{--LOGO--}
@@ -15,7 +11,7 @@
 	Date de la commande : --DATEC--\\
 	%{\small Date d'expédition : \textbf{--DATEEXP--}\\
 	Ref. du client : --REFCLIENT--\\
-	TVA Intra. du  client : --DESTINATAIRE.TVA--\\}~\\
+	TVA Intra. : --DESTINATAIRE.TVA--\\}~\\
 \end{tabular}
 
 \vspace{-0.7cm}
@@ -54,44 +50,7 @@
 \end{flushright}
 \end{minipage}
 
-\small
-
-\setlength\LTleft{0pt}
-\setlength\LTright{0pt}
-\setlength\LTpre{5pt}
-\setlength\LTpost{0pt}
-\begin{longtable}{|p{2.5cm}|p{8cm}@{\extracolsep{1mm plus 1fil}}|c|r|r|r|}
-\hline
-\multicolumn{1}{|c}{R\'ef} &
-\multicolumn{1}{c}{D\'esignation} &
-Qt\'e &
-PU &
-Total HT &
-\multicolumn{1}{c|}{TVA} \\
-\hline \hline
-\endfirsthead
-
-\hline
-\multicolumn{6}{|l|}{\small\sl suite de la page pr\'ec\'edente}\\
-\hline \multicolumn{1}{|c}{R\'ef} &
-\multicolumn{1}{c}{D\'esignation} &
-Qt\'e &
-PU &
-Total HT &
-\multicolumn{1}{c|}{TVA} \\ \hline \hline
-\endhead
-
-\hline \multicolumn{6}{|r|}{{\small\sl suite sur la prochaine page}} \\ \hline
-\endfoot
-
-\hline
-\endlastfoot
-
 --TABULAR--
-
-\end{longtable}
-
-\normalsize
 
 \begin{minipage}[t]{0.49\textwidth}
 

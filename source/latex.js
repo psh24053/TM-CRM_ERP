@@ -267,15 +267,16 @@ Template.prototype.applyHandlers = function() {
 						handlers,
 						function(handler, next) {
 								// apply the handlers to the content
+								//console.log(handler);
 
-								if (_.isArray(handler)) {
-										if (!handler[0] || !handler[0].keys)
+								if (_.isArray(handler.value)) {
+										if (!handler.value[0] || !handler.value[0].keys)
 												return next("Array(0) row keys is missing " + handler.id);
-										var columns = handler[0].keys;
+										var columns = handler.value[0].keys;
 
 										var output = "";
 
-										async.eachSeries(handler, function(tabline, cb) {
+										async.eachSeries(handler.value, function(tabline, cb) {
 												if (tabline.keys)
 														return cb();
 
@@ -318,6 +319,97 @@ Template.prototype.applyHandlers = function() {
 
 										}, function() {
 												//console.log(output);
+												let model = "";
+												switch (handler.template) {
+														case 'tablePriceLines':
+																model = `%%ligne de tableau avec \\
+														\\newcommand{\\specialcell}[2][c]{
+															\\parbox[#1]{7.7cm}{#2}}
+
+														\\setlength\\LTleft{0pt}
+												\\setlength\\LTright{0pt}
+												\\setlength\\LTpre{5pt}
+												\\setlength\\LTpost{0pt}
+												\\begin{longtable}{|r|r|p{8cm}@{\\extracolsep{1mm plus 1fil}}|c|r|r|r|}
+												\\hline
+												\\multicolumn{1}{|c}{N} &
+												\\multicolumn{1}{c}{R\\'ef} &
+												\\multicolumn{1}{c}{D\\'esignation} &
+												Qt\\'e &
+												PU &
+												Total HT &
+												\\multicolumn{1}{c|}{TVA} \\\\
+												\\hline \\hline
+												\\endfirsthead
+
+												\\hline
+												\\multicolumn{7}{|l|}{\\small\\sl suite de la page pr\\'ec\\'edente}\\\\
+												\\hline \\multicolumn{1}{|c}{R\\'ef} &
+												\\multicolumn{1}{c}{D\\'esignation} &
+												Qt\\'e &
+												PU &
+												Total HT &
+												\\multicolumn{1}{c|}{TVA} \\\\ \\hline \\hline
+												\\endhead
+
+												\\hline \\multicolumn{7}{|r|}{{\\small\\sl suite sur la prochaine page}} \\\\ \\hline
+												\\endfoot
+
+												\\hline
+												\\endlastfoot
+												--DATA--
+
+												\\end{longtable}
+												`;
+
+																output = model.replace(new RegExp("--DATA--", "g"), output);
+																break;
+														case 'tablePriceDiscountLines':
+																model = `%%ligne de tableau avec \\
+\\newcommand{\\specialcell}[2][c]{
+\\parbox[#1]{5.8cm}{#2}}
+
+\\setlength\\LTleft{0pt}
+\\setlength\\LTright{0pt}
+\\setlength\\LTpre{5pt}
+\\setlength\\LTpost{0pt}
+\\begin{longtable}{|r|r|p{6.0cm}@{\\extracolsep{1mm plus 1fil}}|c|r|r|r|r|}
+\\hline
+\\multicolumn{1}{|c}{N} &
+\\multicolumn{1}{c}{R\\'ef} &
+\\multicolumn{1}{c}{D\\'esignation} &
+Qt\\'e &
+PU &
+Remise &
+Total HT &
+\\multicolumn{1}{c|}{TVA} \\\\
+\\hline \\hline
+\\endfirsthead
+
+\\hline
+\\multicolumn{8}{|l|}{\\small\\sl suite de la page pr\\'ec\\'edente}\\\\
+\\hline \\multicolumn{1}{|c}{R\\'ef} &
+\\multicolumn{1}{c}{D\\'esignation} &
+Qt\\'e &
+PU &
+Remise &
+Total HT &
+\\multicolumn{1}{c|}{TVA} \\\\ \\hline \\hline
+\\endhead
+
+\\hline \\multicolumn{8}{|r|}{{\\small\\sl suite sur la prochaine page}} \\\\ \\hline
+\\endfoot
+
+\\hline
+\\endlastfoot
+
+--DATA--
+
+\\end{longtable}`;
+																output = model.replace(new RegExp("--DATA--", "g"), output);
+																break;
+												}
+
 												content = content.replace(new RegExp("--" + handler.id + "--", "g"), output);
 												next();
 										});
@@ -372,7 +464,19 @@ Template.prototype.applyHeadFoot = function() {
 										mysoc += "\\\\ Email : " + doc.emails[0].email;
 								if (doc.companyInfo.idprof6)
 										mysoc += "\\\\ TVA Intra. : " + doc.companyInfo.idprof6;
+
 								tex = tex.replace(/--MYSOC--/g, mysoc);
+
+								tex = tex.replace(/--MYSOC.NAME--/g, doc.name || "");
+								tex = tex.replace(/--MYSOC.ADDRESS--/g, doc.address.street.replace(/\n/g, " - ") || "");
+								tex = tex.replace(/--MYSOC.ZIP--/g, doc.address.zip || "");
+								tex = tex.replace(/--MYSOC.TOWN--/g, doc.address.city || "");
+								tex = tex.replace(/--MYSOC.PHONE--/g, doc.phones.phone || "");
+								tex = tex.replace(/--MYSOC.FAX--/g, doc.phones.fax || "");
+								tex = tex.replace(/--MYSOC.EMAIL--/g, doc.emails[0].email || "");
+								tex = tex.replace(/--MYSOC.TVA--/g, doc.companyInfo.idprof6 || "");
+
+
 								var foot = "";
 								foot = "\\textsc{" + doc.name + "} - " + doc.companyInfo.idprof2 + " - NAF : " + doc.companyInfo.idprof3;
 								if (doc.companyInfo.idprof1)

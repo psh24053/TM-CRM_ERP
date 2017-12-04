@@ -48,10 +48,10 @@ let modelPdfSchema = new mongoose.Schema({
 				type: String,
 				require: true
 		}, // module name
-		name: {
+		filename: {
 				type: String,
 				default: ''
-		}, // Used at the end of the filename in html _id + name + .pdf
+		}, // Used at the end of the filename in html _id + filename + .pdf
 		latex: String, //latex main file in latex directory
 		enabled: {
 				type: Boolean,

@@ -2493,19 +2493,21 @@ MetronicApp.controller('ProductInventoryController', ['$scope', '$rootScope', '$
 		});
 
 		$scope.find = function() {
-			$http({
-					method: 'GET',
-					url: '/erp/api/report/InventoryProducts',
-					params: {
-						details : 0,
-						limit : 200,
-						sort : {'sku':1}
-					}
-			}).success(function(data, status) {
-					console.log(data);
-					$scope.listObject = data.data;
-					$scope.totalEntries = data.total;
-			});
+				$http({
+						method: 'GET',
+						url: '/erp/api/report/InventoryProducts',
+						params: {
+								details: 0,
+								limit: 200,
+								sort: {
+										'sku': 1
+								}
+						}
+				}).success(function(data, status) {
+						console.log(data);
+						$scope.listObject = data.data;
+						$scope.totalEntries = data.total;
+				});
 
 
 				$http({
