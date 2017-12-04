@@ -37,6 +37,7 @@ exports.install = function() {
 		F.route('/erp/api/report/products', object.getInfoBySalesProducts, ['authorize']);
 		F.route('/erp/api/report/incomingStock', object.getIncomingStockReport, ['authorize']);
 		F.route('/erp/api/report/scarceProducts', object.getScarceProducts, ['authorize']);
+		F.route('/erp/api/report/InventoryProducts', object.getInventoryProducts, ['authorize']);
 		F.route('/erp/api/report/getProductListingReport', object.getProductListingReport, ['authorize']);
 		F.route('/erp/api/report/getInfoSalesByMonth', object.getInfoSalesByMonth, ['authorize']);
 		F.route('/erp/api/report/getInfoSalesByChannel', object.getInfoSalesByChannel, ['authorize']);
@@ -722,6 +723,197 @@ Object.prototype = {
 						});
 				});
 		},
+
+		getInventoryProducts: function() {
+				var self = this;
+				var query = self.query;
+				var Product = MODEL('product').Schema;
+				var sort = {
+						name: 1
+				};
+				var sortKey;
+
+				if (query.sort)
+						sort = JSON.parse(query.sort);
+
+				Product.aggregate([{
+						$match: {
+								job: null,
+								'info.isActive': true
+						}
+				}, {
+						$lookup: {
+								from: 'productTypes',
+								localField: 'info.productType',
+								foreignField: '_id',
+								as: 'productType'
+						}
+				}, {
+						$unwind: {
+								path: '$productType'
+						}
+				}, {
+						$match: {
+								"productType.inventory": true
+						}
+				}, {
+						$lookup: {
+								from: 'productsAvailability',
+								localField: '_id',
+								foreignField: 'product',
+								as: 'productsAvailabilities'
+						}
+				}, {
+						$unwind: {
+								path: '$productsAvailabilities',
+								preserveNullAndEmptyArrays: true
+						}
+				}, {
+						$project: {
+								onHand: {
+										$ifNull: ['$productsAvailabilities.onHand', 0]
+								},
+								sku: '$info.SKU',
+								name: '$name',
+								minStockLevel: '$inventory.minStockLevel'
+						}
+				}, {
+						$group: {
+								_id: '$_id',
+								onHand: {
+										$sum: '$onHand'
+								},
+								product: {
+										$first: '$$ROOT'
+								}
+						}
+				}, {
+						$lookup: {
+								from: 'orderRows',
+								localField: '_id',
+								foreignField: 'product',
+								as: 'orderRows'
+						}
+				}, {
+						$unwind: {
+								path: '$orderRows',
+								preserveNullAndEmptyArrays: true
+						}
+				}, {
+						$lookup: {
+								from: 'Orders',
+								localField: 'orderRows.order',
+								foreignField: '_id',
+								as: 'orders'
+						}
+				}, {
+						$unwind: {
+								path: '$orders',
+								preserveNullAndEmptyArrays: true
+						}
+				}, {
+						$group: {
+								_id: '$_id',
+								product: {
+										$first: '$product'
+								},
+								onHand: {
+										$first: '$onHand'
+								},
+								orders: {
+										$push: '$orders'
+								}
+						}
+				}, {
+						$project: {
+								_id: 1,
+								product: 1,
+								onHand: 1,
+								orders: {
+										$filter: {
+												input: '$orders',
+												as: 'order',
+												cond: {
+														$and: [{
+																		$eq: ['$$order._type', 'orderSupplier']
+																},
+																//{ $eq: ['$$order.status.shippingStatus', 'NOR'] },
+																{
+																		$eq: ['$$order.status.fulfillStatus', 'NOT']
+																}
+																// { $eq: ['$$order.status.allocateStatus', 'NOR'] }
+														]
+												}
+										}
+								}
+						}
+				}, {
+						$unwind: {
+								path: '$orders',
+								preserveNullAndEmptyArrays: true
+						}
+				}, {
+						$lookup: {
+								from: 'orderRows',
+								localField: 'orders._id',
+								foreignField: 'order',
+								as: 'orderRows'
+						}
+				}, {
+						$unwind: {
+								path: '$orderRows',
+								preserveNullAndEmptyArrays: true
+						}
+				}, {
+						$group: {
+								_id: '$_id',
+								sku: {
+										$first: '$product.sku'
+								},
+								name: {
+										$first: '$product.name'
+								},
+								onHand: {
+										$first: '$onHand'
+								},
+								minStockLevel: {
+										$first: '$product.minStockLevel'
+								},
+								awaiting: {
+										$sum: '$orderRows.qty'
+								}
+						}
+				}, {
+						$project: {
+								_id: 1,
+								sku: 1,
+								name: 1,
+								onHand: 1,
+								minStockLevel: 1,
+								awaiting: 1,
+								amtLow: {
+										$subtract: ['$minStockLevel', '$onHand']
+								}
+						}
+				}, /*{
+						$match: {
+								amtLow: {
+										$gte: 0
+								}
+						}
+				},*/ {
+						$sort: sort
+				}], function(err, result) {
+						if (err)
+								return self.throw500(err);
+
+
+						self.json({
+								data: result
+						});
+				});
+		},
+
 
 		getProductListingReport: function() {
 				var self = this;
