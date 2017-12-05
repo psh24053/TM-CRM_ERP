@@ -1136,28 +1136,6 @@ baseSchema.statics.generatePdfById = function(id, model, callback) {
 
 						self.getById(id, function(err, doc) {
 
-								var title = "";
-
-								if (self.query.proforma)
-										title = "Facture pro forma";
-								else
-										switch (doc._type) {
-												case 'orderCustomer':
-														title = 'Commande';
-														break;
-												case 'orderSupplier':
-														title = 'Commande fournisseur';
-														break;
-												case 'quotationCustomer':
-														title = 'Devis';
-														break;
-												case 'quotationSupplier':
-														title = 'Demande d\'achat';
-														break;
-										}
-
-
-
 								// check if discount
 								for (var i = 0; i < doc.lines.length; i++) {
 										if (doc.lines[i].discount > 0) {
@@ -1241,7 +1219,7 @@ baseSchema.statics.generatePdfById = function(id, model, callback) {
 														switch (doc.lines[i].type) {
 																case 'SUBTOTAL':
 																		tabLines.push({
-																				seq:"",
+																				seq: "",
 																				ref: "",
 																				description: "\\textbf{Sous-total}",
 																				tva_tx: null,
@@ -1253,7 +1231,7 @@ baseSchema.statics.generatePdfById = function(id, model, callback) {
 																		break;
 																case 'COMMENT':
 																		tabLines.push({
-																				seq : "",
+																				seq: "",
 																				ref: "",
 																				description: /*"\\textbf{" + doc.lines[i].refProductSupplier + "}" + */ (doc.lines[i].description ? "\\\\" + doc.lines[i].description : ""),
 																				tva_tx: null,
@@ -1436,7 +1414,7 @@ baseSchema.statics.generatePdfById = function(id, model, callback) {
 																},
 																"TITLE": {
 																		"type": "string",
-																		"value": title
+																		"value": modelPdf.langs[0].title
 																},
 																"REFCLIENT": {
 																		"type": "string",
@@ -1555,8 +1533,6 @@ orderCustomerSchema.methods.setAllocated = function(newRows, callback) {
 
 				var lastSum = elem.qty;
 				var isFilled;
-
-				//console.log(elem);
 
 				Availability.find({
 						warehouse: elem.warehouse,
@@ -4283,7 +4259,7 @@ F.on('order:recalculateStatus', function(data, callback) {
 				};
 
 				if (docs && docs.length && docs[0].order.Status != "DRAFT" && docs[0].order.Status != "NEW") {
-						stockStatus.invoiceStatus = 'NOT'; //NO invoice
+						//stockStatus.invoiceStatus = 'NOT'; //NO invoice
 						async.eachSeries(docs, function(elem, eahcCb) {
 										var product;
 
@@ -4398,7 +4374,7 @@ F.on('order:recalculateStatus', function(data, callback) {
 														var allocatedOnRow;
 														var shippedDocs;
 
-														console.log(docs);
+														//console.log(docs);
 
 														if (err)
 																return eahcCb(err);
@@ -4406,10 +4382,9 @@ F.on('order:recalculateStatus', function(data, callback) {
 														availability = availability && availability.length ? availability[0].allocated : 0;
 
 
-
 														if (!docs || !docs.length) {
 
-																if (!stockStatus.fulfillStatus)
+																if (stockStatus.fulfillStatus == 'NOR')
 																		stockStatus.fulfillStatus = 'NOT';
 
 																stockStatus.fulfillStatus = (stockStatus.fulfillStatus === 'NOA') || (stockStatus.fulfillStatus === 'ALL') ? 'NOA' : 'NOT';
@@ -4430,7 +4405,7 @@ F.on('order:recalculateStatus', function(data, callback) {
 																						shippedOnRow += el.qty;
 																		});
 
-																		if (shippedOnRow !== elem.qty)
+																		if (shippedOnRow != elem.qty)
 																				stockStatus.shippingStatus = 'NOA';
 																		else
 																				stockStatus.shippingStatus = stockStatus.shippingStatus && (stockStatus.shippingStatus === 'NOA') ? 'NOA' : 'ALL';
@@ -4438,7 +4413,7 @@ F.on('order:recalculateStatus', function(data, callback) {
 																} else
 																		stockStatus.shippingStatus = ((stockStatus.shippingStatus === 'NOA') || (stockStatus.shippingStatus === 'ALL')) ? 'NOA' : 'NOT';
 
-																console.log("stockStatus : ", stockStatus);
+																//console.log("stockStatus : ", stockStatus);
 
 
 																docs.forEach(function(el) {
@@ -4448,9 +4423,9 @@ F.on('order:recalculateStatus', function(data, callback) {
 
 																//console.log("test", fullfillOnRow, elem.qty);
 
-																if (fullfillOnRow !== elem.qty)
+																if (fullfillOnRow != elem.qty)
 																		stockStatus.fulfillStatus = (stockStatus.fulfillStatus === 'NOA') ? 'NOA' : 'NOT';
-																else if (!stockStatus.fulfillStatus || stockStatus.fulfillStatus == 'ALL')
+																else if (stockStatus.fulfillStatus == 'NOR' || stockStatus.fulfillStatus == 'ALL')
 																		stockStatus.fulfillStatus = 'ALL';
 																else
 																		stockStatus.fulfillStatus = 'NOA';
@@ -4460,13 +4435,13 @@ F.on('order:recalculateStatus', function(data, callback) {
 
 														allocatedOnRow = fullfillOnRow + availability;
 
-														console.log(availability);
+														//console.log(availability);
 
 														if (!elem.product.info.productType.inventory) {
 																//Not IN STOCK Managment
 																// Allocated ALL
 
-																if (!stockStatus.allocateStatus)
+																if (stockStatus.allocateStatus == 'NOR')
 																		stockStatus.allocateStatus = "ALL";
 																//else
 																//    stockStatus.allocateStatus = ((stockStatus.allocateStatus === 'NOA') || (stockStatus.allocateStatus === 'NOT')) ? stockStatus.allocateStatus : 'ALL';
@@ -4481,7 +4456,7 @@ F.on('order:recalculateStatus', function(data, callback) {
 																return eahcCb();
 														}
 
-														if (!stockStatus.allocateStatus || stockStatus.allocateStatus == 'ALL') {
+														if (stockStatus.allocateStatus == 'NOR' || stockStatus.allocateStatus == 'ALL') {
 																stockStatus.allocateStatus = 'ALL';
 																return eahcCb();
 														}
@@ -4695,7 +4670,7 @@ F.on('order:recalculateStatus', function(data, callback) {
 																				if (status.invoiceStatus == 'ALL')
 																						query.Status = 'CLOSED';
 																				else if (query.Status == 'CLOSED')
-																						query.Status = 'VALIDATED';
+																						query.Status = 'VALIDATE';
 																		}
 
 																		OrderModel.findByIdAndUpdate(data.order._id, query, {
@@ -4720,13 +4695,13 @@ F.on('order:recalculateStatus', function(data, callback) {
 								//Refresh PDF
 								function(pCb) {
 										if (!OrderModel)
-												return wCb();
+												return pCb();
 
 										if (order.Status != 'DRAFT')
-												return wCb();
+												return pCb();
 
 										if (!order.pdfs)
-												return wCb();
+												return pCb();
 
 										async.each(order.pdfs, function(elem, eCb) {
 												OrderModel.generatePdfById(data.order._id, elem.modelPdf, eCb)
