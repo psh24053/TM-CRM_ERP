@@ -6833,10 +6833,10 @@ StockCorrection.prototype = {
 				});
 
 				body.orderRows = _.map(body.orderRows, function(elem) {
-					elem.locationsReceived = [{
-						location : body.location,
-						qty : elem.qty
-					}];
+						elem.locationsReceived = [{
+								location: body.location,
+								qty: elem.qty
+						}];
 						return elem;
 				});
 

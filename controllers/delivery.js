@@ -526,33 +526,33 @@ Object.prototype = {
 																								return wCb(err);
 																						//return console.log(rows);
 
-																								if (result && result.order)
-																										F.emit('order:recalculateStatus', {
-																												userId: self.user._id.toString(),
-																												order: {
-																														_id: result.order._id.toString()
-																												}
-																										});
-
-																								doc.orderRows = rows;
-
-																								doc.status.isInventory = new Date();
-																								//doc.status.isShipped = new Date();
-																								//doc.status.shippedById = self.user._id;
-																								doc.Status = "VALIDATED";
-
-																								doc.save(function(err, doc) {
-																										if (err)
-																												return wCb(err);
-
-																										doc = doc.toObject();
-																										doc.successNotify = {
-																												title: "Success",
-																												message: "Bon de livraison cloture"
-																										};
-
-																										return wCb(null, doc);
+																						if (result && result.order)
+																								F.emit('order:recalculateStatus', {
+																										userId: self.user._id.toString(),
+																										order: {
+																												_id: result.order._id.toString()
+																										}
 																								});
+
+																						doc.orderRows = rows;
+
+																						doc.status.isInventory = new Date();
+																						//doc.status.isShipped = new Date();
+																						//doc.status.shippedById = self.user._id;
+																						doc.Status = "VALIDATED";
+
+																						doc.save(function(err, doc) {
+																								if (err)
+																										return wCb(err);
+
+																								doc = doc.toObject();
+																								doc.successNotify = {
+																										title: "Success",
+																										message: "Bon de livraison cloture"
+																								};
+
+																								return wCb(null, doc);
+																						});
 																				});
 																		});
 														},
@@ -584,24 +584,24 @@ Object.prototype = {
 																				if (err)
 																						return self.throw500(err);
 
-																delivery.update({
-																		'status.isReceived': null,
-																		'status.isPrinted': null,
-																		'status.isPacked': null,
-																		'status.isPicked': null,
-																		Status: 'DRAFT'
-																}, function(err, doc) {
-																	if(err)
-																		return self.throw500(err);
+																				delivery.update({
+																						'status.isReceived': null,
+																						'status.isPrinted': null,
+																						'status.isPacked': null,
+																						'status.isPicked': null,
+																						Status: 'DRAFT'
+																				}, function(err, doc) {
+																						if (err)
+																								return self.throw500(err);
 
-																return self.json({
-																		errorNotify: {
-																				title: 'Erreur',
-																				message: error
-																		}
-																});
-															});
-															});
+																						return self.json({
+																								errorNotify: {
+																										title: 'Erreur',
+																										message: error
+																								}
+																						});
+																				});
+																		});
 														}
 
 														if (doc.successNotify)
@@ -629,8 +629,9 @@ Object.prototype = {
 																		userId: self.user._id.toString(),
 																		order: {
 																				_id: doc._id.toString()
-																		}
-																});
+																		},
+																		route: 'delivery'
+																}, DeliveryModel);
 
 																setTimeout2('notifydelivery:controllerAngular', function() {
 																		F.emit('notify:controllerAngular', {

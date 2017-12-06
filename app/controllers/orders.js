@@ -749,17 +749,17 @@ MetronicApp.controller('OrdersController', ['$scope', '$rootScope', '$http', '$m
 				};
 
 				$scope.buildPDF = function(model) {
-								$http({
-										method: 'PUT',
-										url: '/erp/api/' + $scope.module() + '/pdf/' + this.object._id,
-										params: {
-												model: model || $scope.object.pdfModel,
-												forSales : $scope.object.forSales
-										}
-								}).success(function(data, status) {
-										if (status === 200)
-												$scope.findOne();
-								});
+						$http({
+								method: 'PUT',
+								url: '/erp/api/' + $scope.module() + '/pdf/' + this.object._id,
+								params: {
+										model: model || $scope.object.pdfModel,
+										forSales: $scope.object.forSales
+								}
+						}).success(function(data, status) {
+								if (status === 200)
+										$scope.findOne();
+						});
 				};
 		}
 ]);

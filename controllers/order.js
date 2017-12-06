@@ -683,24 +683,29 @@ Object.prototype = {
 
 								//Allocated product order
 								if (order.Status == "VALIDATED" && forSales)
-									return DeliveryModel.find({order:order._id, isremoved : {$ne:true}},"_id", function(err, delivery){
-										if(err)
-											return wCb(err);
-
-										if(delivery && delivery.length){
-											// Do NOT Allocated if One delivery
-											order.Status = "PROCESSING";
-											return wCb(null, order);
-										}
-
-										return order.setAllocated(newRows, function(err) {
+										return DeliveryModel.find({
+												order: order._id,
+												isremoved: {
+														$ne: true
+												}
+										}, "_id", function(err, delivery) {
 												if (err)
 														return wCb(err);
 
-												//order.Status = "VALIDATED";
-												wCb(null, order);
+												if (delivery && delivery.length) {
+														// Do NOT Allocated if One delivery
+														order.Status = "PROCESSING";
+														return wCb(null, order);
+												}
+
+												return order.setAllocated(newRows, function(err) {
+														if (err)
+																return wCb(err);
+
+														//order.Status = "VALIDATED";
+														wCb(null, order);
+												});
 										});
-									});
 
 								if (order.Status == "DRAFT" && forSales)
 										return order.unsetAllocated(newRows, function(err) {

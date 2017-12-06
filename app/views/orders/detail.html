@@ -321,7 +321,7 @@
 <div ng-if="object._id && module('delivery') && object.forSales" class="row">
 	<div class="col-md-12">
 		<product-lines ng-model="object.orderRows" title="'@(orders:PreparationNote)'" for-sales="object.forSales" warehouse="object.warehouse" ng-disabled="editable" price-list="object.supplier.salesPurchases.priceList._id" ng-template="/templates/core/productDeliveryLine.html"
-		  ng-change="update()"></product-lines>
+		 ng-change="update()"></product-lines>
 	</div>
 </div>
 
@@ -329,7 +329,7 @@
 <div ng-if="object._id && module('delivery') && !object.forSales" class="row">
 	<div class="col-md-12">
 		<product-lines ng-model="object.orderRows" title="'@(orders:ReceptionNotes)'" for-sales="object.forSales" warehouse="object.warehouse" ng-disabled="editable" price-list="object.supplier.salesPurchases.priceList._id" ng-template="/templates/core/productDeliverySupplierLine.html"
-		  ng-change="update()"></product-lines>
+		 ng-change="update()"></product-lines>
 	</div>
 </div>
 

@@ -678,8 +678,8 @@ AvailabilitySchema.statics.updateAvailableProducts = function(options, mainCb) {
 
 								console.log(orderRow.qty);
 
-								if(!orderRow.qty) //No product needed
-									return eachCb();
+								if (!orderRow.qty) //No product needed
+										return eachCb();
 
 								lastSum = orderRow.qty;
 								orderRow.qty = 0;
@@ -691,10 +691,14 @@ AvailabilitySchema.statics.updateAvailableProducts = function(options, mainCb) {
 										return eachCb();
 
 								self.find({
-									  archived:false,
+										archived: false,
 										warehouse: doc.warehouse,
 										product: orderRow.product._id
-								},"",{sort:{createdAt : 1}}, function(err, avalabilities) {
+								}, "", {
+										sort: {
+												createdAt: 1
+										}
+								}, function(err, avalabilities) {
 										if (err)
 												return eachCb(err);
 
@@ -841,7 +845,7 @@ AvailabilitySchema.statics.updateAvailableProducts = function(options, mainCb) {
 																return eachCb(err);
 
 														if (!orderRow.qty)
-														    return eachCb(error);
+																return eachCb(error);
 
 														eachCb();
 
@@ -1235,17 +1239,17 @@ F.on('productsAvailability:recalculateOnHand', function(data) {
 				return;
 
 		AvailabilityModel.find({
-			product : data.product._id,
-			archived : false
-		})
-		.populate("goodsInNote","orderRows")
-		.populate("goodsOutNotes.goodsNoteId","orderRows")
-		.exec(function(err,docs){
-			if(err)
-				return console.log(err);
+						product: data.product._id,
+						archived: false
+				})
+				.populate("goodsInNote", "orderRows")
+				.populate("goodsOutNotes.goodsNoteId", "orderRows")
+				.exec(function(err, docs) {
+						if (err)
+								return console.log(err);
 
-			console.log(docs[0].goodsOutNotes);
-		});
+						console.log(docs[0].goodsOutNotes);
+				});
 
 		//Recalcul OnHand
 		//archived true/false

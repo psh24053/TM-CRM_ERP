@@ -41,7 +41,7 @@
 						<div class="input-icon right">
 							<i class="fa fa-warning font-red pull-right" ng-show="!line.product._id" title="@(products:ErrorProductBadRefOrLabel)"></i>
 							<input ng-show="tableform.$visible" ng-class="{'has-error':$error, 'has-success': !$error}" type="text" ng-model="line.product.info.SKU" typeahead="product as product.ref for product in productAutoComplete($viewValue, 'ref')" typeahead-template-url="searchproduct.html"
-							  typeahead-on-select="addProduct($item, line.idLine, linesModel)" onbeforesave="checkLine(line.product)" />
+							 typeahead-on-select="addProduct($item, line.idLine, linesModel)" onbeforesave="checkLine(line.product)" />
 
 							<a ng-hide="tableform.$visible" ui-sref="product.show.informations({id:line.product._id})">{{ line.product.info.SKU || 'Erreur' }}</a>
 

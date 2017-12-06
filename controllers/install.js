@@ -5391,26 +5391,30 @@ F.on('load', function() {
 										console.log("update StockCorrections");
 
 										stockCorrectionModel.find({
-											'orderRows.locationsReceived':{$size :0}
-										}, function(err, docs){
-											if(err)
-												return aCb(err);
+												'orderRows.locationsReceived': {
+														$size: 0
+												}
+										}, function(err, docs) {
+												if (err)
+														return aCb(err);
 
-											if(!docs)
-												return aCb();
+												if (!docs)
+														return aCb();
 
-											async.each(docs, function(elem, eCb){
-													elem.orderRows = _.map(elem.orderRows, function(line){
-														line.locationsReceived = [{
-															location : elem.location,
-															qty : line.qty
-														}];
-														return line;
+												async.each(docs, function(elem, eCb) {
+														elem.orderRows = _.map(elem.orderRows, function(line) {
+																line.locationsReceived = [{
+																		location: elem.location,
+																		qty: line.qty
+																}];
+																return line;
 														});
 
-														stockCorrectionModel.findByIdAndUpdate(elem._id, {orderRows : elem.orderRows}, eCb);
+														stockCorrectionModel.findByIdAndUpdate(elem._id, {
+																orderRows: elem.orderRows
+														}, eCb);
 
-											}, aCb);
+												}, aCb);
 										});
 
 								}
@@ -5421,26 +5425,30 @@ F.on('load', function() {
 										console.log("update goodsInNote");
 
 										GoodsInNoteModel.find({
-											'orderRows.locationsReceived':{$size :0}
-										}, function(err, docs){
-											if(err)
-												return aCb(err);
+												'orderRows.locationsReceived': {
+														$size: 0
+												}
+										}, function(err, docs) {
+												if (err)
+														return aCb(err);
 
-											if(!docs)
-												return aCb();
+												if (!docs)
+														return aCb();
 
-											async.each(docs, function(elem, eCb){
-													elem.orderRows = _.map(elem.orderRows, function(line){
-														line.locationsReceived = [{
-															location : elem.location,
-															qty : line.qty
-														}];
-														return line;
+												async.each(docs, function(elem, eCb) {
+														elem.orderRows = _.map(elem.orderRows, function(line) {
+																line.locationsReceived = [{
+																		location: elem.location,
+																		qty: line.qty
+																}];
+																return line;
 														});
 
-														GoodsInNoteModel.findByIdAndUpdate(elem._id, {orderRows : elem.orderRows}, eCb);
+														GoodsInNoteModel.findByIdAndUpdate(elem._id, {
+																orderRows: elem.orderRows
+														}, eCb);
 
-											}, aCb);
+												}, aCb);
 										});
 
 								}

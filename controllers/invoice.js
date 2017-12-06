@@ -347,7 +347,7 @@ Object.prototype = {
 						rows[i].sequence = i;
 						if (rows[i].type == 'product' && !rows[i].isDeleted)
 								rows[i].numLine = cpt++;
-					}
+				}
 
 				self.body.dater = MODULE('utils').calculate_date_lim_reglement(self.body.datec, self.body.cond_reglement_code);
 

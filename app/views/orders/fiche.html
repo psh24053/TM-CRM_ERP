@@ -163,7 +163,7 @@
 				<li class="divider"></li>
 				<li>
 					<a href="#" class="font-red" ng-if="(object.Status !=='CLOSED' && object.Status !=='CANCELED') && login.rights.order.delete" confirmed-click="changeStatus('CANCELED')" ng-confirm-click="Annuler la commade ? Attention ceci ne supprime que les bons de preparation en etat BROUILLON ?"
-					  title="Annuler">
+					 title="Annuler">
                         <i class="fa fa-ban font-red"></i> @(orders:CancelOrder)
                     </a>
 				</li>

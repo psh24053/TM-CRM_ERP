@@ -293,7 +293,7 @@ exports.pdfModels = [{
 		code: 'deliveryDefault',
 		module: 'delivery',
 		forSales: true,
-		isDefault : true,
+		isDefault: true,
 		latex: 'delivery.tex', //latex main file in latex directory
 		langs: [{
 				title: "Bon de livraison",

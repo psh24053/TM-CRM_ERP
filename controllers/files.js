@@ -224,5 +224,5 @@ function downloadPdf(req, res) {
 		if (token !== req.query.key)
 				return res.throw401();
 
-		res.stream('application/pdf', fs.createReadStream(F.path.root() + '/uploads/pdf/' + req.split.last()), (req.query.filename.replace('/','_') || "donwload") + ".pdf");
+		res.stream('application/pdf', fs.createReadStream(F.path.root() + '/uploads/pdf/' + req.split.last()), (req.query.filename.replace('/', '_') || "donwload") + ".pdf");
 };
