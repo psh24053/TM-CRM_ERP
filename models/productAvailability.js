@@ -51,8 +51,7 @@ var AvailabilitySchema = new Schema({
 		},
 		goodsInNote: {
 				type: ObjectId,
-				ref: 'goodsInNotes',
-				default: null
+				ref: 'order'
 		}, //IN
 		cost: {
 				type: Number,
@@ -66,7 +65,7 @@ var AvailabilitySchema = new Schema({
 				_id: false, //OUT
 				goodsNoteId: {
 						type: ObjectId,
-						ref: 'goodsOutNotes'
+						ref: 'order'
 				},
 				qty: {
 						type: Number,
@@ -205,7 +204,7 @@ AvailabilitySchema.statics.updateByQuery = function(options, callback) {
 				};
 		}
 
-		//console.log(query);
+		//console.log(body);
 
 		this.update(query, body, settings || {}, function(err, availability) {
 				if (err)
@@ -667,10 +666,6 @@ AvailabilitySchema.statics.getAvailabilityForProducts = function(query, options,
 		});
 };
 
-
-
-
-
 AvailabilitySchema.statics.updateAvailableProducts = function(options, mainCb) {
 		var self = this;
 		var doc = options.doc;
@@ -681,7 +676,13 @@ AvailabilitySchema.statics.updateAvailableProducts = function(options, mainCb) {
 								var lastSum;
 								var isFilled = false;
 
+								console.log(orderRow.qty);
+
+								if(!orderRow.qty) //No product needed
+									return eachCb();
+
 								lastSum = orderRow.qty;
+								orderRow.qty = 0;
 
 								//return console.log(orderRow.product, doc.warehouse);
 
@@ -690,16 +691,18 @@ AvailabilitySchema.statics.updateAvailableProducts = function(options, mainCb) {
 										return eachCb();
 
 								self.find({
+									  archived:false,
 										warehouse: doc.warehouse,
 										product: orderRow.product._id
-								}, function(err, avalabilities) {
+								},"",{sort:{createdAt : 1}}, function(err, avalabilities) {
 										if (err)
 												return eachCb(err);
 
-										//console.log(avalabilities);
+										//return console.log(avalabilities);
 
 										if (avalabilities.length) {
-												async.each(avalabilities, function(avalability, cb) {
+
+												async.eachSeries(avalabilities, function(avalability, cb) {
 														var resultOnHand;
 														var existedRow = {
 																qty: 0
@@ -717,6 +720,8 @@ AvailabilitySchema.statics.updateAvailableProducts = function(options, mainCb) {
 																return cb();
 
 														onHand = avalability.onHand + existedRow.qty;
+
+														//return console.log(onHand);
 
 														if (!onHand || onHand <= 0)
 																return cb();
@@ -763,7 +768,7 @@ AvailabilitySchema.statics.updateAvailableProducts = function(options, mainCb) {
 																}
 
 																orderRow.cost += avalability.cost * qtyDeliver;
-																orderRow.qty = qtyDeliver;
+																orderRow.qty += qtyDeliver;
 																cb();
 														}
 
@@ -835,10 +840,11 @@ AvailabilitySchema.statics.updateAvailableProducts = function(options, mainCb) {
 														if (err)
 																return eachCb(err);
 
-														//if (!orderRow.qty)
-														//    return eachCb(error);
+														if (!orderRow.qty)
+														    return eachCb(error);
 
 														eachCb();
+
 														F.emit('inventory:update', {
 																userId: null,
 																product: {
@@ -860,7 +866,7 @@ AvailabilitySchema.statics.updateAvailableProducts = function(options, mainCb) {
 		} else
 				mainCb(error);
 };
-AvailabilitySchema.statics.deliverProducts = function(options, mainCb) {
+/*AvailabilitySchema.statics.deliverProducts = function(options, mainCb) {
 		var self = this;
 		var OrderRows = MODEL('orderRows').Schema;
 		var goodsOutNote = options.goodsOutNote;
@@ -869,9 +875,9 @@ AvailabilitySchema.statics.deliverProducts = function(options, mainCb) {
 
 		self.updateByQuery(_.extend({
 				query: {
-						goodsOutNotes: {
-								$size: 0
-						},
+						//goodsOutNotes: {
+						//		$size: 0
+						//},/
 						orderRows: {
 								$size: 0
 						},
@@ -897,7 +903,7 @@ AvailabilitySchema.statics.deliverProducts = function(options, mainCb) {
 										_id: "EUR"
 								},
 
-								date: goodsOutNote.status.isShipped,
+								date: goodsOutNote.updatedAt,
 								sourceDocument: {
 										model: 'goodsOutNote',
 										_id: goodsOutNote._id,
@@ -1001,7 +1007,7 @@ AvailabilitySchema.statics.deliverProducts = function(options, mainCb) {
 
 				});
 		});
-};
+};*/
 AvailabilitySchema.statics.receiveProducts = function(options, mainCb) {
 		var self = this;
 		var OrderRows = MODEL('orderRows').Schema;
@@ -1217,3 +1223,32 @@ AvailabilitySchema.statics.receiveProducts = function(options, mainCb) {
 
 exports.Schema = mongoose.model('productsAvailability', AvailabilitySchema);
 exports.name = "productsAvailability";
+
+F.on('productsAvailability:recalculateOnHand', function(data) {
+		const ObjectId = MODULE('utils').ObjectId;
+		const AvailabilityModel = exports.Schema;
+
+		//console.log(data);
+		console.log("Update emit productsAvailability onHand", data);
+
+		if (!data.product || !data.product._id)
+				return;
+
+		AvailabilityModel.find({
+			product : data.product._id,
+			archived : false
+		})
+		.populate("goodsInNote","orderRows")
+		.populate("goodsOutNotes.goodsNoteId","orderRows")
+		.exec(function(err,docs){
+			if(err)
+				return console.log(err);
+
+			console.log(docs[0].goodsOutNotes);
+		});
+
+		//Recalcul OnHand
+		//archived true/false
+
+
+});

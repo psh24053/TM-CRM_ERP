@@ -48,10 +48,11 @@ exports.install = function() {
 		F.route('/erp/api/delivery/pdf/', object.pdfAll, ['post', 'json', 'authorize', 60000]);
 		F.route('/erp/api/delivery/csv/', object.csvAll, ['post', 'json', 'authorize']);
 		F.route('/erp/api/delivery/mvt/', object.csvMvt, ['post', 'json', 'authorize']);
-		F.route('/erp/api/delivery/pdf/{deliveryId}', object.pdf, ['authorize']);
+		F.route('/erp/api/delivery/pdf/{}', object.pdf, ['authorize']);
 		F.route('/erp/api/delivery/pdf/{deliveryId}/{version}', function(ref, version) {
 				object.pdf(ref + '/' + version, this);
 		}, ['authorize']);
+		F.route('/erp/api/delivery/pdf/{deliveryId}', object.generatePdf, ['put', 'authorize']);
 
 		// recupere la liste des courses pour verification
 		F.route('/erp/api/delivery/billing', billing.read, ['authorize']);
@@ -523,15 +524,7 @@ Object.prototype = {
 																				}, function(err, rows) {
 																						if (err)
 																								return wCb(err);
-																						//console.log(rows);
-																						result.orderRows = rows;
-
-																						return Availability.deliverProducts({
-																								uId: self.user._id,
-																								goodsOutNote: result
-																						}, function(err) {
-																								if (err)
-																										return wCb(err);
+																						//return console.log(rows);
 
 																								if (result && result.order)
 																										F.emit('order:recalculateStatus', {
@@ -560,14 +553,36 @@ Object.prototype = {
 
 																										return wCb(null, doc);
 																								});
-																						});
 																				});
 																		});
-														}
+														},
+														function(doc, wCb) {
+																// Calcul numLine for pdf
+																if (!doc.orderRows || !doc.orderRows.length)
+																		return wCb(null, doc);
+
+																let cpt = 1;
+																async.forEachSeries(doc.orderRows, function(elem, aCb) {
+
+																		if (!elem.isDeleted)
+																				elem.numLine = cpt++;
+
+																		return aCb();
+																}, function(err) {
+																		return wCb(err, doc);
+																});
+														},
 												],
-												function(err, doc) {
-														if (err) {
-																console.log(err);
+												function(error, doc) {
+														if (error) {
+																console.log(error);
+
+																return DeliveryModel.cancelInventories({
+																				ids: [self.body._id]
+																		},
+																		function(err, doc) {
+																				if (err)
+																						return self.throw500(err);
 
 																delivery.update({
 																		'status.isReceived': null,
@@ -575,14 +590,18 @@ Object.prototype = {
 																		'status.isPacked': null,
 																		'status.isPicked': null,
 																		Status: 'DRAFT'
-																}, function(err, doc) {});
+																}, function(err, doc) {
+																	if(err)
+																		return self.throw500(err);
 
 																return self.json({
 																		errorNotify: {
 																				title: 'Erreur',
-																				message: err
+																				message: error
 																		}
 																});
+															});
+															});
 														}
 
 														if (doc.successNotify)
@@ -1010,6 +1029,34 @@ Object.prototype = {
 
 								self.json(res.datatable);
 						});
+				});
+		},
+		generatePdf: function(id) {
+				const self = this;
+
+				if (self.query.stockReturn === 'true') {
+						if (self.query.forSales == "false")
+								return;
+						//var DeliveryModel = MODEL('order').Schema.stockReturns;
+						else
+								var DeliveryModel = MODEL('order').Schema.stockReturns;
+				} else {
+						if (self.query.forSales == "false")
+								var DeliveryModel = MODEL('order').Schema.GoodsInNote;
+						else
+								var DeliveryModel = MODEL('order').Schema.GoodsOutNote;
+				}
+
+				DeliveryModel.generatePdfById(id, self.query.model, function(err, doc) {
+						if (err)
+								return self.json({
+										errorNotify: {
+												title: 'Erreur',
+												message: err
+										}
+								});
+
+						return self.json({});
 				});
 		},
 		pdf: function(ref, self) {

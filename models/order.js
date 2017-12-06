@@ -1671,7 +1671,10 @@ orderCustomerSchema.methods.unsetAllocated = function(newRows, callback) {
 								multi: true,
 								upsert: false
 						},
-						eachCb);
+						function(err){
+							F.emit('productsAvailability:recalculateOnHand',{product: {_id : elem.product.toString()}});
+							return eachCb(err);
+						});
 		}, callback);
 };
 
@@ -2198,20 +2201,29 @@ var goodsOutNoteSchema = new Schema({
 
 		orderRows: [{
 				_id: false,
+				numLine : Number, //LineId for PDF
 				orderRowId: {
 						type: ObjectId,
-						ref: 'orderRows',
-						default: null
+						ref: 'orderRows'
 				},
 				product: {
 						type: ObjectId,
-						ref: 'product',
-						default: null
+						ref: 'product'
 				},
-				locationsDeliver: [{
+				/*locationsDeliver: [{
 						type: ObjectId,
 						ref: 'location'
+				}], OLD WITHOUT QTY*/
+
+				locationsDeliver: [{
+						_id: false,
+						location: {
+								type: ObjectId,
+								ref: 'location'
+						},
+						qty: Number
 				}],
+
 				cost: {
 						type: Number,
 						default: 0
@@ -2317,6 +2329,9 @@ goodsOutNoteSchema.statics.cancelInventories = function(options, callback) {
 						if (goodsNote && goodsNote[orderType]) {
 								async.each(goodsNote.orderRows, function(goodsOrderRow, callback) {
 
+										if(goodsOrderRow.isDeleted)
+											return callback();
+
 										var query = goodsNote[orderType].project ? {
 												product: goodsOrderRow.product,
 												warehouse: goodsNote.warehouse
@@ -2325,6 +2340,8 @@ goodsOutNoteSchema.statics.cancelInventories = function(options, callback) {
 												product: goodsOrderRow.product,
 												warehouse: goodsNote.warehouse
 										};
+
+										//console.log(goodsOrderRow);
 
 										Availability.updateByQuery({
 												query: query,
@@ -2970,13 +2987,11 @@ var goodsInNoteSchema = new Schema({
 				_id: false,
 				orderRowId: {
 						type: ObjectId,
-						ref: 'orderRows',
-						default: null
+						ref: 'orderRows'
 				},
 				product: {
 						type: ObjectId,
-						ref: 'product',
-						default: null
+						ref: 'product'
 				},
 				cost: {
 						type: Number,
@@ -2986,8 +3001,7 @@ var goodsInNoteSchema = new Schema({
 						_id: false,
 						location: {
 								type: ObjectId,
-								ref: 'location',
-								default: null
+								ref: 'location'
 						},
 						qty: Number
 				}],
@@ -2997,7 +3011,7 @@ var goodsInNoteSchema = new Schema({
 						default: false
 				},
 
-				qty: Number
+				qty: Number // TODO Remove
 		}],
 
 		logisticMethod: {
@@ -3540,6 +3554,341 @@ goodsInNoteSchema.statics.query = function(options, callback) {
 		async.waterfall(waterfallTasks, callback);
 };
 
+const generateDeliveryPdf = function(id, model, callback) {
+		// Generation de la facture PDF et download
+		const SocieteModel = MODEL('Customers').Schema;
+		const ModelPDFModel = MODEL('modelspdf').Schema;
+
+		const self = this;
+
+		async.waterfall([
+			function(wCb) {
+					ModelPDFModel.findById(model, function(err, doc) {
+							if (err)
+									return wCb(err);
+
+							return wCb(null, doc);
+					});
+			},
+				function(model, wCb) {
+					if(model)
+						return wCb(null, model);
+
+						//Load default model
+						ModelPDFModel.findOne({module:'delivery', isDefault:true}, function(err, doc) {
+								if (err)
+										return wCb(err);
+
+								if (!doc)
+										return wCb("No model PDF found");
+
+								return wCb(null, doc);
+						});
+				},
+				function(modelPdf, wCb) {
+
+					self.getById(id, function(err, doc) {
+
+							if (doc.status.isPrinted == null) {
+									doc.status.isPrinted = new Date();
+									doc.status.printedById = options.userId;
+									self.findByIdAndUpdate(doc._id, doc, function(err, doc) {});
+							}
+
+							const fixedWidthString = require('fixed-width-string');
+							const isbn = MODULE('utils').checksumIsbn;
+							// Generation du BL PDF et download
+							var fk_livraison;
+
+							//console.log(doc);
+
+							Dict.extrafield({
+									extrafieldName: 'BonLivraison'
+							}, function(err, doc) {
+									if (err) {
+											console.log(err);
+											return;
+									}
+
+									fk_livraison = doc;
+							});
+
+							SocieteModel.findOne({
+									_id: doc.supplier._id
+							}, function(err, societe) {
+
+									// Array of lines
+									var tabLines = [];
+
+									tabLines.push({
+											keys: [{
+															key: "seq",
+															type: "string"
+													},{
+															key: "ref",
+															type: "string"
+													},
+													{
+															key: "description",
+															type: "area"
+													},
+													{
+															key: "qty_order",
+															type: "number",
+															precision: 0
+													},
+													{
+															key: "qty",
+															type: "number",
+															precision: 0
+													}
+											]
+									});
+
+									for (var i = 0; i < doc.lines.length; i++) {
+											//console.log(doc.orderRows[i]);
+
+											//console.log(doc.lines[i]);
+											let orderRow = _.findWhere(doc.orderRows, {
+													orderRowId: doc.lines[i]._id
+											});
+
+											if (doc.lines[i].type != 'SUBTOTAL' && doc.lines[i].qty != 0 && orderRow && orderRow.qty != 0)
+													tabLines.push({
+															seq:orderRow.numLine,
+															ref: doc.lines[i].product.info.SKU.substring(0, 12),
+															description: "\\textbf{" + doc.lines[i].product.info.langs[0].name + "}" + (doc.lines[i].description ? "\\\\" + doc.lines[i].description : ""),
+															qty_order: doc.lines[i].qty,
+															qty: {
+																	value: orderRow.qty,
+																	unit: (doc.lines[i].product.unit ? " " + doc.lines[i].product.unit : "U")
+															}
+													});
+
+											/*if (doc.lines[i].product.id.pack && doc.lines[i].product.id.pack.length) {
+											 for (var j = 0; j < doc.lines[i].product.id.pack.length; j++) {
+											 tabLines.push({
+											 ref: "*" + doc.lines[i].product.id.pack[j].id.ref.substring(0, 10),
+											 description: "\\textbf{" + doc.lines[i].product.id.pack[j].id.label + "}" + (doc.lines[i].product.id.pack[j].id.description ? "\\\\" + doc.lines[i].product.id.pack[j].id.description : ""),
+											 qty_order: doc.lines[i].qty_order * doc.lines[i].product.id.pack[j].qty,
+											 qty: {value: doc.lines[i].qty * doc.lines[i].product.id.pack[j].qty, unit: (doc.lines[i].product.id.pack[j].id.unit ? " " + doc.lines[i].product.id.pack[j].id.unit : "U")},
+											 italic: true
+											 });
+											 }
+											 }
+											 tabLines.push({hline: 1});*/
+
+
+											//tab_latex += " & \\specialcell[t]{\\\\" + "\\\\} & " +   + " & " + " & " +  "\\tabularnewline\n";
+									}
+
+									// Array of totals
+									var tabTotal = [{
+											keys: [{
+															key: "label",
+															type: "string"
+													}, {
+															key: "total",
+															type: "number",
+															precision: 3
+													},
+													{
+															key: "unit",
+															type: "string"
+													}
+											]
+									}];
+
+									//Total HT
+									tabTotal.push({
+											label: "Quantité totale : ",
+											total: _.sum(doc.orderRows, function(line) {
+													return line.qty;
+											}),
+											unit: "pièce(s)"
+									});
+
+									// Poids
+									if (doc.weight)
+											tabTotal.push({
+													label: "Poids total : ",
+													total: doc.weight,
+													unit: "kg"
+											});
+
+									// 4 -> BL
+									// 5 -> RT
+									let code = 4;
+									if (doc._type == 'stockReturns')
+											code = 5;
+									var barcode = code + "-" + moment(doc.datedl).format("YY") + "0-"; + doc.ref.split('-')[1].replace('_', '-');
+									var split = doc.ref.replace('/', '-').split('-');
+									if (split.length == 2) //BL1607-02020-32
+											barcode += "00" + fixedWidthString(doc.ID, 6, {
+													padding: '0',
+													align: 'right'
+											});
+									else { // BL1607-120202
+											barcode += fixedWidthString(doc.ID, 6, {
+													padding: '0',
+													align: 'right'
+											});
+											barcode += "-" + fixedWidthString(split[2], 2, {
+													padding: '0',
+													align: 'right'
+											});
+									}
+
+									barcode += '-' + isbn(barcode);
+
+									Latex.Template(modelPdf.latex, doc.entity)
+											.apply({
+													"NUM": {
+															"type": "string",
+															"value": doc.ref
+													},
+													"BILL.NAME": {
+															"type": "string",
+															"value": doc.address.name || doc.supplier.fullName
+													},
+													"BILL.ADDRESS": {
+															"type": "area",
+															"value": doc.address.street
+													},
+													"BILL.ZIP": {
+															"type": "string",
+															"value": doc.address.zip
+													},
+													"BILL.TOWN": {
+															"type": "string",
+															"value": doc.address.city
+													},
+													"DESTINATAIRE.NAME": {
+															"type": "string",
+															"value": doc.shippingAddress.name
+													},
+													"DESTINATAIRE.ADDRESS": {
+															"type": "area",
+															"value": doc.shippingAddress.street
+													},
+													"DESTINATAIRE.ZIP": {
+															"type": "string",
+															"value": doc.shippingAddress.zip
+													},
+													"DESTINATAIRE.TOWN": {
+															"type": "string",
+															"value": doc.shippingAddress.city
+													},
+													"DESTINATAIRE.TVA": {
+															"type": "string",
+															"value": societe.companyInfo.idprof6
+													},
+													"CODECLIENT": {
+															"type": "string",
+															"value": societe.salesPurchases.code_client
+													},
+													//"TITLE": {"type": "string", "value": doc.title},
+													"REFCLIENT": {
+															"type": "string",
+															"value": doc.ref_client
+													},
+													"DELIVERYMODE": {
+															"type": "string",
+															"value": doc.delivery_mode
+													},
+													"BARCODE": {
+															type: "string",
+															value: barcode
+													},
+													"DATEC": {
+															"type": "date",
+															"value": doc.datec,
+															"format": CONFIG('dateformatShort')
+													},
+													"DATEEXP": {
+															"type": "date",
+															"value": doc.datedl,
+															"format": CONFIG('dateformatShort')
+													},
+													"ORDER": {
+															"type": "string",
+															"value": (doc.order && doc.order.ref ? doc.order.ref : "-")
+													},
+													"NOTES": {
+															"type": "area",
+															"value": (doc.notes.length ? doc.notes[0].note : "")
+													},
+													"TABULAR":{
+														//template: (discount ? "tablePriceDiscountLines" : "tablePriceLines"),
+													value: tabLines
+											},
+													"TOTALQTY": {
+																value: tabTotal
+															}
+											})
+											.on('error', callback)
+											.finalize(function(tex) {
+											})
+														.compile()
+														.pipe(fs.createWriteStream(F.path.root() + '/uploads/pdf/' + doc._id + "_" + modelPdf.code + ".pdf"))
+														.on('end', function() {
+																//console.log('document written');
+
+																self.update({
+																		_id: doc._id,
+																		'pdfs.modelPdf': modelPdf._id
+																}, {
+																		$set: {
+																			  pdfModel : modelPdf._id,
+																				'pdfs.$.filename': doc.ref + modelPdf.filename,
+																				"pdfs.$.datec": new Date()
+																		}
+																}, {
+																		upsert: false
+																}, function(err, res) {
+																		if (err)
+																				return wCb(err);
+
+																		if (res && res.nModified)
+																				return wCb(); // Already exist and updated
+
+																		//console.log(modelPdf);
+
+																		//create new entry in order
+																		self.update({
+																				_id: doc._id
+																		}, {
+																			$set : {
+																				pdfModel : modelPdf._id
+																			},
+																				$push: {
+																						"pdfs": {
+																								filename: doc.ref + modelPdf.filename,
+																								fileId: doc._id + "_" + modelPdf.code + ".pdf",
+																								modelPdf: modelPdf._id,
+																								datec: new Date()
+																						}
+																				}
+																		}, {
+																				upsert: false
+																		}, function(err, doc) {
+																				if (err)
+																						return wCb(err);
+
+																				wCb();
+																		});
+																});
+														});
+										});
+								});
+
+				}
+		], callback);
+};
+
+goodsInNoteSchema.statics.generatePdfById =generateDeliveryPdf;
+goodsOutNoteSchema.statics.generatePdfById =generateDeliveryPdf;
+
 var stockCorrectionSchema = new Schema({
 		status: {
 				isReceived: {
@@ -3553,8 +3902,7 @@ var stockCorrectionSchema = new Schema({
 
 				receivedById: {
 						type: ObjectId,
-						ref: 'Users',
-						default: null
+						ref: 'Users'
 				}
 		},
 
@@ -3569,21 +3917,18 @@ var stockCorrectionSchema = new Schema({
 
 		location: {
 				type: ObjectId,
-				ref: 'location',
-				default: null
+				ref: 'location'
 		},
 
 		orderRows: [{
 				_id: false,
 				orderRowId: {
 						type: ObjectId,
-						ref: 'orderRows',
-						default: null
+						ref: 'orderRows'
 				},
 				product: {
 						type: ObjectId,
-						ref: 'product',
-						default: null
+						ref: 'product'
 				},
 				cost: {
 						type: Number,
@@ -3593,13 +3938,12 @@ var stockCorrectionSchema = new Schema({
 						_id: false,
 						location: {
 								type: ObjectId,
-								ref: 'location',
-								default: null
+								ref: 'location'
 						},
 						qty: Number
 				}],
 
-				qty: Number
+				qty: Number //TODO Remove
 		}]
 });
 
@@ -4328,9 +4672,9 @@ F.on('order:recalculateStatus', function(data, callback) {
 																_type: {
 																		$ne: 'stockReturns'
 																},
-																/*"status.isInventory": {
+																"status.isInventory": {
 																    $ne: null
-																},*/
+																},
 																Status: {
 																		$ne: 'CANCELED'
 																},
@@ -4425,7 +4769,7 @@ F.on('order:recalculateStatus', function(data, callback) {
 
 																if (fullfillOnRow != elem.qty)
 																		stockStatus.fulfillStatus = (stockStatus.fulfillStatus === 'NOA') ? 'NOA' : 'NOT';
-																else if (stockStatus.fulfillStatus == 'NOR' || stockStatus.fulfillStatus == 'ALL')
+																else if (stockStatus.fulfillStatus == 'NOT' || stockStatus.fulfillStatus == 'ALL')
 																		stockStatus.fulfillStatus = 'ALL';
 																else
 																		stockStatus.fulfillStatus = 'NOA';

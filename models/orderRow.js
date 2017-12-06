@@ -115,7 +115,7 @@ var OrderRowSchema = mongoose.Schema({
 		},
 		integrationId: String,
 		sequence: Number, // sequence for orderLines
-		numLine:Number, //num line for pdf first column
+		numLine: Number, //num line for pdf first column
 		isDeleted: {
 				type: Boolean,
 				defaut: false

@@ -31,6 +31,7 @@ const mongoose = require('mongoose'),
 
 const LangSchema = new Schema({
 		_id: false,
+		title: String,
 		description: {
 				type: String,
 				default: ''
@@ -56,6 +57,14 @@ let modelPdfSchema = new mongoose.Schema({
 		enabled: {
 				type: Boolean,
 				default: true
+		},
+		forSales: {
+				type: Boolean,
+				default: true
+		},
+		isDefault: {
+				type: Boolean,
+				default: false
 		},
 		langs: [LangSchema]
 }, {

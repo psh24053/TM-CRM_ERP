@@ -15,8 +15,8 @@
 			<table class="table table-fixed table-striped table-bordered table-hover no-footer">
 				<thead>
 					<tr role="row" class="heading">
-						<th style="width: 140px;">@(products:ProductCode)</th>
-						<th style="width: 15%;">@(Name)</th>
+						<th style="width: 30px;">#</th>
+						<th style="width: 45%;">@(products:ProductCode)</th>
 						<th class="center" style="width: 80px;">@(QtyOrder)</th>
 						<th class="center" style="width: 80px;">@(orders:QtyOnHand)</th>
 						<th class="center" style="width: 100px;">@(QtyFulfilled)</th>
@@ -24,12 +24,10 @@
 						<th class="center" style="width: 100px;">@(QtyDelivered)</th>
 						<th style="width: 50px;"><span ng-show="tableform.$visible">@(Action)</span></th </tr>
 				</thead>
-				<tr ng-repeat="line in linesModel| filter:filterLine" ng-class="{success:line.type == 'SUBTOTAL',bold:line.type == 'SUBTOTAL'}">
+				<tr ng-repeat="line in linesModel| filter:filterLine" ng-class="{success:line.type == 'SUBTOTAL',bold:line.type == 'SUBTOTAL', warning:line.product.info.productType.inventory && $parent.$parent.object.Status == 'DRAFT' && line.qty > (line.onHand + line.fulfilled) }">
+					<td>{{line.numLine}}</td>
 					<td>
-						<a ui-sref="product.show.informations({id:line.product._id})">{{ line.product.info.SKU || 'Erreur' }}</a>
-					</td>
-					<td class="center">
-						{{ line.product.info.langs[0].name || 'empty' }}
+						<a ui-sref="product.show.informations({id:line.product._id})">{{ line.product.info.SKU || 'Erreur' }}</a> - {{ line.product.info.langs[0].name || 'empty' }}
 					</td>
 					<td class="center">
 						{{ line.orderQty || '0' }}

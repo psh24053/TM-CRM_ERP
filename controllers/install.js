@@ -5379,6 +5379,89 @@ F.on('load', function() {
 												//wCb(err, conf);
 										});
 								});
+						},
+						//Refresh locationsReceived in stockCorrection and GoodsInNote
+						function(conf, wCb) {
+								if (conf.version >= 0.67)
+										return wCb(null, conf);
+
+								function stockCorrection(aCb) {
+										const stockCorrectionModel = MODEL('order').Schema.StockCorrections;
+
+										console.log("update StockCorrections");
+
+										stockCorrectionModel.find({
+											'orderRows.locationsReceived':{$size :0}
+										}, function(err, docs){
+											if(err)
+												return aCb(err);
+
+											if(!docs)
+												return aCb();
+
+											async.each(docs, function(elem, eCb){
+													elem.orderRows = _.map(elem.orderRows, function(line){
+														line.locationsReceived = [{
+															location : elem.location,
+															qty : line.qty
+														}];
+														return line;
+														});
+
+														stockCorrectionModel.findByIdAndUpdate(elem._id, {orderRows : elem.orderRows}, eCb);
+
+											}, aCb);
+										});
+
+								}
+
+								function goodsInNote(aCb) {
+										const GoodsInNoteModel = MODEL('order').Schema.GoodsInNote;
+
+										console.log("update goodsInNote");
+
+										GoodsInNoteModel.find({
+											'orderRows.locationsReceived':{$size :0}
+										}, function(err, docs){
+											if(err)
+												return aCb(err);
+
+											if(!docs)
+												return aCb();
+
+											async.each(docs, function(elem, eCb){
+													elem.orderRows = _.map(elem.orderRows, function(line){
+														line.locationsReceived = [{
+															location : elem.location,
+															qty : line.qty
+														}];
+														return line;
+														});
+
+														GoodsInNoteModel.findByIdAndUpdate(elem._id, {orderRows : elem.orderRows}, eCb);
+
+											}, aCb);
+										});
+
+								}
+
+								async.waterfall([stockCorrection, goodsInNote], function(err) {
+										if (err)
+												return console.log(err);
+
+										Dict.findByIdAndUpdate('const', {
+												'values.version': 0.66
+										}, {
+												new: true
+										}, function(err, doc) {
+												if (err)
+														return console.log(err);
+
+												console.log("ToManage updated to {0}".format(doc.values.version));
+												wCb(err, doc.values);
+												//wCb(err, conf);
+										});
+								});
 						}
 				],
 				function(err, doc) {

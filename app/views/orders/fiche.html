@@ -101,11 +101,6 @@
 				</li>
 				<hr>
 				<li>
-					<a ng-href="/erp/api/{{module()}}/pdf/{{object.ref}}" target="_blank">
-                        <i class="fa fa-file-pdf-o"></i> @(BuildPDF)
-                    </a>
-				</li>
-				<li>
 					<a ng-if="object.Status !='DRAFT' && object.contacts.length" ng-href="#" ng-click="sendEmail('@(offers:Offer)','offer',object.address.contacts)">
                         <i class="fa  fa-envelope"></i> @(mails:SendMail)
                     </a>
@@ -161,15 +156,6 @@
 				</li>
 				<li class="divider"></li>
 				<li>
-					<a ng-href="/erp/api/{{module()}}/pdf/{{object.ref}}" target="_blank">
-                        <i class="fa fa-file-pdf-o"></i> @(BuildPDF)
-                    </a>
-				</li>
-				<li>
-					<a ng-if="object.total_ht !=0" ng-href="/erp/api/order/pdf/{{object.ref}}?proforma=1" target="_blank">
-                        <i class="fa fa-file-pdf-o"></i> @(BuildPDF) Proforma</a>
-				</li>
-				<li>
 					<a ng-if="object.Status !='DRAFT' && object.contacts.length" ng-href="#" ng-click="sendEmail('@(orders:Order)','order',object.address.contacts)">
                         <i class="fa fa-envelope"></i> @(mails:SendMail)
                     </a>
@@ -177,7 +163,7 @@
 				<li class="divider"></li>
 				<li>
 					<a href="#" class="font-red" ng-if="(object.Status !=='CLOSED' && object.Status !=='CANCELED') && login.rights.order.delete" confirmed-click="changeStatus('CANCELED')" ng-confirm-click="Annuler la commade ? Attention ceci ne supprime que les bons de preparation en etat BROUILLON ?"
-					 title="Annuler">
+					  title="Annuler">
                         <i class="fa fa-ban font-red"></i> @(orders:CancelOrder)
                     </a>
 				</li>
@@ -210,11 +196,6 @@
                     </a>
 				</li>
 				<hr>
-				<li>
-					<a ng-if="isQty(object.orderRows)" ng-href="/erp/api/{{module()}}/pdf/{{object.ref}}" target="_blank">
-                        <i class="fa fa-file-pdf-o"></i> @(BuildPDF)
-                    </a>
-				</li>
 				<li>
 					<a ng-if="object.Status !='DRAFT' && object.contacts.length" ng-href="#" ng-click="sendEmail('@(orders:Delivery)','delivery',object.address.contact.email)">
                         <i class="fa fa-envelope"></i> @(mails:SendMail)
@@ -250,11 +231,6 @@
 				</li>
 				<hr>
 				<li>
-					<a ng-if="object.Status !='DRAFT'" ng-href="/erp/api/{{module()}}/pdf/{{object.ref}}" target="_blank">
-                        <i class="fa fa-file-pdf-o"></i> @(BuildPDF)
-                    </a>
-				</li>
-				<li>
 					<a ng-show='object.Status !="DRAFT" && object.address.contact.email' ng-href="#" ng-click="sendEmail('@(orders:Bill)','bill',object.address.contact.email)">
                         <i class="fa fa-envelope"></i> @(mails:SendMail)
                     </a>
@@ -275,11 +251,6 @@
 				<li>
 					<a href="#" ng-if="object.Status=='VALIDATED' && login.rights.order.create" data-ng-click="changeStatus('DRAFT')">
                         <i class="fa fa-history"></i> @(ReOpen)
-                    </a>
-				</li>
-				<li>
-					<a ng-href="/erp/api/delivery/pdf/{{object.ref}}?stockReturn=true" target="_blank">
-                        <i class="fa fa-file-pdf-o"></i> @(BuildPDF)
                     </a>
 				</li>
 				<li>
@@ -424,13 +395,13 @@
 										<label for="pdfModel"></i> @(orders:PDFModels)</label>
 									</div>
 									<span class="input-group-btn btn-right">
-								<button class="btn green-haze" type="button" ng-disabled="!object.pdfModel" ng-click="buildPDF()">@(Generate)</button>
+								<button class="btn green-haze" type="button" ng-disabled="object.Status == 'DRAFT'" ng-click="buildPDF()">@(Generate)</button>
 						</span>
 								</div>
 							</div>
 						</div>
 					</div>
-					<table class="table table-bordered table-hover">
+					<table class="table table-bordered table-hover" ng-hide="object.Status == 'DRAFT'">
 						<thead>
 							<tr role="row" class="heading">
 								<th width="25%">
@@ -443,43 +414,54 @@
 						<tbody>
 							<tr ng-repeat="pdf in object.pdfs">
 								<td><a ng-href="/erp/api/pdf/{{pdf.fileId}}?key={{pdf.token}}&filename={{pdf.filename}}">{{pdf.filename}}</a> ({{pdf.datec | date:'dd/MM/yyyy HH:mm'}})</td>
-								<td></td>
+								<td>
+									<div class="clearfix">
+										<a href="javascript:;" ng-click="buildPDF(pdf.modelPdf)" class="btn btn-icon-only green">
+																																					<i class="fa fa-refresh"></i>
+																																			</a>
+										<!--<a href="javascript:;" class="btn btn-icon-only red">
+																																					<i class="fa fa-"></i>
+																																			</a>-->
+										<!--<a href="javascript:;" ng-if="object.Status !='DRAFT' && object.contacts.length" ng-href="#" ng-click="sendEmail('@(offers:Offer)','offer',object.address.contacts)" class="btn btn-icon-only blue">
+																																					<i class="fa fa-envelope"></i>
+																																			</a>-->
+								</td>
 							</tr>
 						</tbody>
 					</table>
+					</div>
 				</div>
-			</div>
 
-			<div class="portlet light">
-				<div class="row list-separated profile-stat">
-					<div class=" col-md-6 col-sm-6 col-xs-6">
-						<div class="uppercase profile-stat-title"> <i class="icon-calendar font-yellow-crusta"></i> {{object.createdAt|date:'dd/MM/yyyy HH:mm'}} </div>
-					</div>
-					<div class="col-md-6 col-sm-6 col-xs-6">
-						<div class="uppercase profile-stat-title"> <i class="icon-refresh font-yellow-crusta"></i> {{object.updatedAt|date:'dd/MM/yyyy HH:mm'}} </div>
-					</div>
-					<div>
-						<div class="col-md-6 col-sm-6 col-xs-6">
-							<div class="uppercase profile-stat-title"> <a class="font-yellow-crusta">{{object.createdBy.username}}</a> </div>
-							<!--<div class="uppercase profile-stat-text"> @(CreatedBy)</div>-->
+				<div class="portlet light">
+					<div class="row list-separated profile-stat">
+						<div class=" col-md-6 col-sm-6 col-xs-6">
+							<div class="uppercase profile-stat-title"> <i class="icon-calendar font-yellow-crusta"></i> {{object.createdAt|date:'dd/MM/yyyy HH:mm'}} </div>
 						</div>
 						<div class="col-md-6 col-sm-6 col-xs-6">
-							<div class="uppercase profile-stat-title"> <a class="font-yellow-crusta">{{object.editedBy.username}}</a> </div>
-							<!-- <div class="uppercase profile-stat-text"> @(EditedBy) </div>-->
+							<div class="uppercase profile-stat-title"> <i class="icon-refresh font-yellow-crusta"></i> {{object.updatedAt|date:'dd/MM/yyyy HH:mm'}} </div>
+						</div>
+						<div>
+							<div class="col-md-6 col-sm-6 col-xs-6">
+								<div class="uppercase profile-stat-title"> <a class="font-yellow-crusta">{{object.createdBy.username}}</a> </div>
+								<!--<div class="uppercase profile-stat-text"> @(CreatedBy)</div>-->
+							</div>
+							<div class="col-md-6 col-sm-6 col-xs-6">
+								<div class="uppercase profile-stat-title"> <a class="font-yellow-crusta">{{object.editedBy.username}}</a> </div>
+								<!-- <div class="uppercase profile-stat-text"> @(EditedBy) </div>-->
+							</div>
+						</div>
+					</div>
+
+					<div class="row list-separated profile-stat">
+						<div class="col-md-12">
+							<div class="uppercase profile-stat-text">@(Logs)</div>
+							<div class="uppercase profile-stat-title" ng-repeat="history in object.history"> {{history.date| date:'dd/MM/yyyy HH:mm'}} - {{history.msg}}</div>
 						</div>
 					</div>
 				</div>
 
-				<div class="row list-separated profile-stat">
-					<div class="col-md-12">
-						<div class="uppercase profile-stat-text">@(Logs)</div>
-						<div class="uppercase profile-stat-title" ng-repeat="history in object.history"> {{history.date| date:'dd/MM/yyyy HH:mm'}} - {{history.msg}}</div>
-					</div>
-				</div>
+				<div ng-if="object._id" ng-include="'/templates/gridfs/fileAll.html'" ng-controller="FileCtrl" onload="init('order', object)"></div>
 			</div>
-
-			<div ng-if="object._id" ng-include="'/templates/gridfs/fileAll.html'" ng-controller="FileCtrl" onload="init('order', object)"></div>
+			<div ui-view class="profile-content fade-in-up"></div>
 		</div>
-		<div ui-view class="profile-content fade-in-up"></div>
 	</div>
-</div>

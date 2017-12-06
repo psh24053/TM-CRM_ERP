@@ -129,7 +129,6 @@ exports.install = function(options) {
 		F.route('/erp/api/order/file/{Id}', object.createFile, ['post', 'authorize']);
 		F.route('/erp/api/order/file/{Id}/{fileName}', object.getFile, ['authorize']);
 		F.route('/erp/api/order/file/{Id}/{fileName}', object.deleteFile, ['delete', 'authorize']);
-		F.route('/erp/api/order/pdf/{orderId}', object.pdf, ['authorize']);
 		F.route('/erp/api/order/pdf/{orderId}', object.generatePdf, ['put', 'authorize']);
 		F.route('/erp/api/offer/pdf/{orderId}', object.generatePdf, ['put', 'authorize']);
 		F.route('/erp/api/order/download/{:id}', object.download);
@@ -504,19 +503,19 @@ Object.prototype = {
 
 				async.waterfall([
 						function(wCb) {
-							// Calcul numLine for pdf
-							if(!self.body.lines || !self.body.lines.length)
-								return wCb();
+								// Calcul numLine for pdf
+								if (!self.body.lines || !self.body.lines.length)
+										return wCb();
 
 								let cpt = 1;
-								async.forEachSeries(self.body.lines, function(elem, aCb){
+								async.forEachSeries(self.body.lines, function(elem, aCb) {
 
-										if(elem.type == 'product' && !elem.isDeleted)
-											elem.numLine = cpt++;
+										if (elem.type == 'product' && !elem.isDeleted)
+												elem.numLine = cpt++;
 
 										return aCb();
-								}, function(err){
-									return wCb(err, self.body.lines);
+								}, function(err) {
+										return wCb(err, self.body.lines);
 								});
 						},
 						function(lines, wCb) {
@@ -684,6 +683,16 @@ Object.prototype = {
 
 								//Allocated product order
 								if (order.Status == "VALIDATED" && forSales)
+									return DeliveryModel.find({order:order._id, isremoved : {$ne:true}},"_id", function(err, delivery){
+										if(err)
+											return wCb(err);
+
+										if(delivery && delivery.length){
+											// Do NOT Allocated if One delivery
+											order.Status = "PROCESSING";
+											return wCb(null, order);
+										}
+
 										return order.setAllocated(newRows, function(err) {
 												if (err)
 														return wCb(err);
@@ -691,6 +700,7 @@ Object.prototype = {
 												//order.Status = "VALIDATED";
 												wCb(null, order);
 										});
+									});
 
 								if (order.Status == "DRAFT" && forSales)
 										return order.unsetAllocated(newRows, function(err) {
@@ -700,7 +710,7 @@ Object.prototype = {
 												wCb(null, order);
 										});
 
-								if (order.Status == "CANCELED")
+								if (order.Status == "CANCELED" && forSales)
 										return order.unsetAllocated(newRows, function(err) {
 												if (err)
 														return wCb(err);

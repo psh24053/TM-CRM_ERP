@@ -6832,6 +6832,14 @@ StockCorrection.prototype = {
 						return elem.isDeleted !== true;
 				});
 
+				body.orderRows = _.map(body.orderRows, function(elem) {
+					elem.locationsReceived = [{
+						location : body.location,
+						qty : elem.qty
+					}];
+						return elem;
+				});
+
 				var stockCorrection = new StockCorrectionModel(body);
 
 				stockCorrection.save(function(err, doc) {

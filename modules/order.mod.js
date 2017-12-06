@@ -24,7 +24,7 @@ International Registered Trademark & Property of ToManage SAS
 const moment = require('moment');
 
 exports.name = 'order';
-exports.version = 1.01;
+exports.version = 1.021;
 exports.enabled = true;
 
 exports.csv = {
@@ -329,9 +329,20 @@ exports.filters = {
 exports.pdfModels = [{
 		code: 'ORDER',
 		module: 'order',
+		forSales: true,
 		latex: 'order.tex', //latex main file in latex directory
 		langs: [{
+				title: 'Commande',
 				description: "BdC (default)"
+		}]
+}, {
+		code: 'ORDER_PROF',
+		module: 'order',
+		forSales: true,
+		latex: 'order.tex', //latex main file in latex directory
+		langs: [{
+				title: 'Facture pro forma',
+				description: "Facture pro forma"
 		}]
 }];
 
