@@ -1627,6 +1627,7 @@ billSchema.statics.generatePdfById = function(id, model, callback) {
 																		'pdfs.modelPdf': modelPdf._id
 																}, {
 																		$set: {
+																				pdfModel: modelPdf._id,
 																				'pdfs.$.filename': doc.ref + modelPdf.filename,
 																				"pdfs.$.datec": new Date()
 																		}
@@ -1645,6 +1646,9 @@ billSchema.statics.generatePdfById = function(id, model, callback) {
 																		self.update({
 																				_id: doc._id
 																		}, {
+																				$set: {
+																						pdfModel: modelPdf._id
+																				},
 																				$push: {
 																						"pdfs": {
 																								filename: doc.ref + modelPdf.filename,

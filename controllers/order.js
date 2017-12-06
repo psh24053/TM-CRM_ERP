@@ -750,7 +750,7 @@ Object.prototype = {
 				], function(err, order) {
 						if (err) {
 								console.log(err);
-								OrderModel.update({
+								return OrderModel.update({
 										_id: id
 								}, {
 										$set: {
@@ -776,13 +776,22 @@ Object.prototype = {
 										});
 								}
 
-								if (rows.length)
+								if (rows.length) {
 										F.emit('order:recalculateStatus', {
 												userId: self.user._id.toString(),
 												order: {
 														_id: doc._id.toString()
 												}
 										});
+
+										F.emit('order:update', {
+												userId: self.user._id.toString(),
+												order: {
+														_id: doc._id.toString()
+												},
+												route: self.query.quotation == 'true' ? 'offer' : 'order'
+										}, OrderModel);
+								}
 
 								//console.log(doc);
 								doc = doc.toObject();
