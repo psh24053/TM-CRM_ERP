@@ -277,6 +277,9 @@ MetronicApp.factory("Orders", ['$resource', function($resource) {
 								update: {
 										method: 'PUT'
 								},
+								patch: {
+										method: 'PATCH'
+								},
 								query: {
 										method: 'GET',
 										isArray: false
@@ -296,6 +299,9 @@ MetronicApp.factory("Orders", ['$resource', function($resource) {
 								update: {
 										method: 'PUT'
 								},
+								patch: {
+										method: 'PATCH'
+								},
 								query: {
 										method: 'GET',
 										isArray: false
@@ -313,6 +319,9 @@ MetronicApp.factory("Orders", ['$resource', function($resource) {
 						}, {
 								update: {
 										method: 'PUT'
+								},
+								patch: {
+										method: 'PATCH'
 								},
 								query: {
 										method: 'GET',
@@ -332,6 +341,9 @@ MetronicApp.factory("Orders", ['$resource', function($resource) {
 								update: {
 										method: 'PUT'
 								},
+								patch: {
+										method: 'PATCH'
+								},
 								query: {
 										method: 'GET',
 										isArray: false
@@ -349,6 +361,9 @@ MetronicApp.factory("Orders", ['$resource', function($resource) {
 						}, {
 								update: {
 										method: 'PUT'
+								},
+								patch: {
+										method: 'PATCH'
 								},
 								query: {
 										method: 'GET',
@@ -374,6 +389,9 @@ MetronicApp.factory("Orders", ['$resource', function($resource) {
 								update: {
 										method: 'PUT'
 								},
+								patch: {
+										method: 'PATCH'
+								},
 								query: {
 										method: 'GET',
 										isArray: false
@@ -398,6 +416,9 @@ MetronicApp.factory("Orders", ['$resource', function($resource) {
 								update: {
 										method: 'PUT'
 								},
+								patch: {
+										method: 'PATCH'
+								},
 								query: {
 										method: 'GET',
 										isArray: false
@@ -415,6 +436,9 @@ MetronicApp.factory("Orders", ['$resource', function($resource) {
 						}, {
 								update: {
 										method: 'PUT'
+								},
+								patch: {
+										method: 'PATCH'
 								},
 								query: {
 										method: 'GET',
@@ -434,6 +458,9 @@ MetronicApp.factory("Orders", ['$resource', function($resource) {
 								update: {
 										method: 'PUT'
 								},
+								patch: {
+										method: 'PATCH'
+								},
 								query: {
 										method: 'GET',
 										isArray: false
@@ -452,6 +479,9 @@ MetronicApp.factory("Orders", ['$resource', function($resource) {
 								update: {
 										method: 'PUT'
 								},
+								patch: {
+										method: 'PATCH'
+								},
 								query: {
 										method: 'GET',
 										isArray: false
@@ -469,6 +499,9 @@ MetronicApp.factory("Orders", ['$resource', function($resource) {
 						}, {
 								update: {
 										method: 'PUT'
+								},
+								patch: {
+										method: 'PATCH'
 								},
 								query: {
 										method: 'GET',

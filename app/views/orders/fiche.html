@@ -385,7 +385,7 @@
 						<span class="caption-helper"></span>
 					</div>
 				</div>
-				<div class="portlet-body">
+				<div class="portlet-body" ng-hide="object.Status == 'DRAFT'">
 					<div class="row">
 						<div class="col-md-12">
 							<div class="form-group form-md-line-input">
@@ -401,7 +401,7 @@
 							</div>
 						</div>
 					</div>
-					<table class="table table-bordered table-hover" ng-hide="object.Status == 'DRAFT'">
+					<table class="table table-bordered table-hover">
 						<thead>
 							<tr role="row" class="heading">
 								<th width="25%">

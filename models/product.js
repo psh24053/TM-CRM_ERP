@@ -1521,6 +1521,222 @@ productSchema.methods.updateRating = function() {
 		this.rating.total = (this.rating.attributes + this.rating.ecommerce + this.rating.images + this.rating.marketing) / 4;
 }
 
+productSchema.statics.getInventory = function(options, callback) {
+		const self = this;
+
+		var query = [{
+				$match: {
+						job: null,
+						'info.isActive': true,
+						isremoved: {
+								$ne: true
+						}
+				}
+		}, {
+				$lookup: {
+						from: 'productTypes',
+						localField: 'info.productType',
+						foreignField: '_id',
+						as: 'productType'
+				}
+		}, {
+				$unwind: {
+						path: '$productType'
+				}
+		}, {
+				$match: {
+						"productType.inventory": true
+				}
+		}, {
+				$lookup: {
+						from: 'productsAvailability',
+						localField: '_id',
+						foreignField: 'product',
+						as: 'productsAvailabilities'
+				}
+		}, {
+				$unwind: {
+						path: '$productsAvailabilities',
+						preserveNullAndEmptyArrays: true
+				}
+		}, {
+				$match: {
+						"productsAvailabilities.archived": false
+				}
+		}, {
+				$project: {
+						onHand: {
+								$ifNull: ['$productsAvailabilities.onHand', 0]
+						},
+						allocated: {
+								$sum: "$productsAvailabilities.orderRows.qty"
+						},
+						sku: '$info.SKU',
+						name: '$name',
+						minStockLevel: '$inventory.minStockLevel'
+				}
+		}, {
+				$group: {
+						_id: '$_id',
+						onHand: {
+								$sum: '$onHand'
+						},
+						product: {
+								$first: '$$ROOT'
+						},
+						allocated: {
+								$sum: "$allocated"
+						}
+				}
+		}, {
+				$lookup: {
+						from: 'orderRows',
+						localField: '_id',
+						foreignField: 'product',
+						as: 'orderRows'
+				}
+		}, {
+				$unwind: {
+						path: '$orderRows',
+						preserveNullAndEmptyArrays: true
+				}
+		}, {
+				$lookup: {
+						from: 'Orders',
+						localField: 'orderRows.order',
+						foreignField: '_id',
+						as: 'orders'
+				}
+		}, {
+				$unwind: {
+						path: '$orders',
+						preserveNullAndEmptyArrays: true
+				}
+		}, {
+				$group: {
+						_id: '$_id',
+						product: {
+								$first: '$product'
+						},
+						onHand: {
+								$first: '$onHand'
+						},
+						allocated: {
+								$first: "$allocated"
+						},
+						orders: {
+								$push: '$orders'
+						}
+				}
+		}, {
+				$project: {
+						_id: 1,
+						product: 1,
+						onHand: 1,
+						allocated: 1,
+						orders: {
+								$filter: {
+										input: '$orders',
+										as: 'order',
+										cond: {
+												$and: [{
+																$eq: ['$$order._type', 'orderSupplier']
+														},
+														//{ $eq: ['$$order.status.shippingStatus', 'NOR'] },
+														{
+																$eq: ['$$order.status.fulfillStatus', 'NOT']
+														}
+														// { $eq: ['$$order.status.allocateStatus', 'NOR'] }
+												]
+										}
+								}
+						}
+				}
+		}, {
+				$unwind: {
+						path: '$orders',
+						preserveNullAndEmptyArrays: true
+				}
+		}, {
+				$lookup: {
+						from: 'orderRows',
+						localField: 'orders._id',
+						foreignField: 'order',
+						as: 'orderRows'
+				}
+		}, {
+				$project: {
+						_id: 1,
+						product: 1,
+						onHand: 1,
+						allocated: 1,
+						orderRows: {
+								$filter: {
+										input: '$orderRows',
+										as: 'line',
+										cond: {
+												$and: [{
+														$eq: ['$$line.product', '$_id']
+												}]
+										}
+								}
+						}
+				}
+		}, {
+				$unwind: {
+						path: '$orderRows',
+						preserveNullAndEmptyArrays: true
+				}
+		}, {
+				$group: {
+						_id: '$_id',
+						sku: {
+								$first: '$product.sku'
+						},
+						name: {
+								$first: '$product.name'
+						},
+						onHand: {
+								$first: '$onHand'
+						},
+						allocated: {
+								$first: '$allocated'
+						},
+						minStockLevel: {
+								$first: '$product.minStockLevel'
+						},
+						awaiting: {
+								$sum: '$orderRows.qty'
+						}
+				}
+		}, {
+				$project: {
+						_id: 1,
+						sku: 1,
+						name: 1,
+						onHand: 1,
+						allocated: 1,
+						minStockLevel: 1,
+						awaiting: 1,
+						physicalStock: {
+								$add: ['$allocated', '$onHand']
+						}
+				}
+		}];
+
+		if (options.sort)
+				query.push({
+						$sort: options.sort
+				});
+
+		console.log(query);
+
+		if (options.exec == false)
+				return callback(null, query);
+
+		self.aggregate(query, callback);
+};
+
 productSchema.pre('save', function(next) {
 		var SeqModel = MODEL('Sequence').Schema;
 		var self = this;

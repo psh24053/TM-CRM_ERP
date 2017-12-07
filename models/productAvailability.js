@@ -1238,18 +1238,238 @@ F.on('productsAvailability:recalculateOnHand', function(data) {
 		if (!data.product || !data.product._id)
 				return;
 
-		AvailabilityModel.find({
-						product: data.product._id,
-						archived: false
-				})
-				.populate("goodsInNote", "orderRows")
-				.populate("goodsOutNotes.goodsNoteId", "orderRows")
-				.exec(function(err, docs) {
+		AvailabilityModel.aggregate([{
+						$match: {
+								product: ObjectId(data.product._id),
+								archived: false,
+								isJob: false
+						},
+				}, {
+						$project: {
+								_id: 1,
+								onHand: 1,
+								orderRows: 1,
+								goodsInNote: 1,
+								goodsOutNotes: 1,
+								location: 1,
+								warehouse: 1,
+								product: 1
+						}
+				}, {
+						$unwind: {
+								path: '$orderRows',
+								preserveNullAndEmptyArrays: true
+						}
+				}, {
+						$group: {
+								_id: "$_id",
+								totalAllocated: {
+										$sum: '$orderRows.qty'
+								},
+								onHand: {
+										$first: '$onHand'
+								},
+								goodsOutNotes: {
+										$first: '$goodsOutNotes'
+								},
+								goodsInNote: {
+										$first: '$goodsInNote'
+								},
+								location: {
+										$first: '$location'
+								},
+								warehouse: {
+										$first: '$warehouse'
+								},
+								product: {
+										$first: '$product'
+								}
+						}
+				}, {
+						$unwind: {
+								path: '$goodsOutNotes',
+								preserveNullAndEmptyArrays: true
+						}
+				}, {
+						$group: {
+								_id: "$_id",
+								totalOut: {
+										$sum: '$goodsOutNotes.qty'
+								},
+								totalAllocated: {
+										$first: '$totalAllocated'
+								},
+								onHand: {
+										$first: '$onHand'
+								},
+								goodsInNote: {
+										$first: '$goodsInNote'
+								},
+								location: {
+										$first: '$location'
+								},
+								warehouse: {
+										$first: '$warehouse'
+								},
+								product: {
+										$first: '$product'
+								}
+						}
+				},
+				{
+						$lookup: {
+								from: 'Orders',
+								localField: 'goodsInNote',
+								foreignField: '_id',
+								as: 'goodsInNote'
+						}
+				}, {
+						$project: {
+								_id: 1,
+								onHand: 1,
+								goodsInNote: {
+										$arrayElemAt: ['$goodsInNote', 0]
+								},
+								location: 1,
+								warehouse: 1,
+								product: 1,
+								total: {
+										out: "$totalOut",
+										allocated: "$totalAllocated"
+								}
+						}
+				}, {
+						$project: {
+								_id: 1,
+								onHand: 1,
+								goodsInNote: {
+										$filter: {
+												input: "$goodsInNote.orderRows",
+												as: "line",
+												cond: {
+														$eq: ['$$line.product', '$product']
+												}
+										}
+								},
+								location: 1,
+								warehouse: 1,
+								product: 1,
+								total: 1
+						}
+				}, {
+						$unwind: '$goodsInNote'
+				}, {
+						$project: {
+								_id: 1,
+								onHand: 1,
+								goodsInNote: {
+										$filter: {
+												input: "$goodsInNote.locationsReceived",
+												as: "location",
+												cond: {
+														$eq: ['$$location.location', '$location']
+												}
+										}
+								},
+								location: 1,
+								warehouse: 1,
+								product: 1,
+								total: 1
+						}
+				}, {
+						$unwind: '$goodsInNote'
+				}, {
+						$group: {
+								_id: "$_id",
+								total: {
+										$first: '$total'
+								},
+								totalIn: {
+										$sum: '$goodsInNote.qty'
+								},
+								onHand: {
+										$first: '$onHand'
+								},
+								location: {
+										$first: '$location'
+								},
+								warehouse: {
+										$first: '$warehouse'
+								},
+								product: {
+										$first: '$product'
+								}
+						}
+				}, {
+						$project: {
+								_id: 1,
+								onHand: 1,
+								location: 1,
+								warehouse: 1,
+								product: 1,
+								total: { in: "$totalIn",
+										out: {
+												$sum: ["$total.out", "$total.allocated"]
+										}
+								}
+						}
+				}, {
+						$project: {
+								_id: 1,
+								onHand: 1,
+								onHandNew: {
+										$subtract: ["$total.in", "$total.out"]
+								}
+						}
+				}
+		], function(err, docs) {
+				if (err)
+						return console.log(err);
+
+				if (!docs || !docs.length)
+						return;
+
+				async.each(docs, function(elem, eCb) {
+						//console.log(elem);
+
+						async.waterfall([
+								function(wCb) {
+										if (elem.onHand == elem.onHandNew)
+												return wCb(null, null);
+
+										AvailabilityModel.update({
+												_id: elem._id
+										}, {
+												$set: {
+														onHand: elem.onHandNew
+												}
+										}, {
+												upsert: false
+										}, wCb);
+								},
+								function(doc, wCb) {
+										//Archived true if onHand = 0
+										AvailabilityModel.update({
+												archived: true,
+												isJob: false,
+												onHand: 0,
+												orderRows: {
+														$size: 0
+												}
+										}, {
+												$set: {
+														archived: true
+												}
+										}, wCb);
+								}
+						], eCb);
+				}, function(err) {
 						if (err)
 								return console.log(err);
 
-						console.log(docs[0].goodsOutNotes);
+						console.log("Refresh AvailabilityModel Ok");
 				});
+		});
 
 		//Recalcul OnHand
 		//archived true/false

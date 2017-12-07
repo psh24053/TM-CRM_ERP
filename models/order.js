@@ -1493,7 +1493,7 @@ baseSchema.statics.generatePdfById = function(id, model, callback) {
 																		if (res && res.nModified)
 																				return wCb(); // Already exist and updated
 
-																		console.log(modelPdf);
+																		//console.log(modelPdf);
 
 																		//create new entry in order
 																		self.update({
@@ -1527,13 +1527,17 @@ baseSchema.statics.generatePdfById = function(id, model, callback) {
 				}
 		], callback);
 };
-orderCustomerSchema.methods.setAllocated = function(newRows, callback) {
-		if (!newRows || !newRows.length)
-				return callback();
-
+orderCustomerSchema.methods.setAllocated = function(callback) {
 		const Availability = MODEL('productsAvailability').Schema;
+		const OrderRowModel = MODEL('orderRows').Schema;
 
-		async.eachSeries(newRows, function(elem, eachCb) {
+		OrderRowModel.find({
+				order: this._id
+		}, function(err, rows) {
+				if (!rows || !rows.length)
+						return callback();
+
+		async.eachSeries(rows, function(elem, eachCb) {
 
 				var lastSum = elem.qty;
 				var isFilled;
@@ -1656,34 +1660,43 @@ orderCustomerSchema.methods.setAllocated = function(newRows, callback) {
 				});
 
 		}, callback);
+	});
 };
 
-orderCustomerSchema.methods.unsetAllocated = function(newRows, callback) {
+orderCustomerSchema.methods.unsetAllocated = function(callback) {
 		const Availability = MODEL('productsAvailability').Schema;
+		const OrderRowModel = MODEL('orderRows').Schema;
 
-		async.eachSeries(newRows, function(elem, eachCb) {
-				Availability.update({
-								product: elem.product,
-								'orderRows.orderRowId': elem._id
-						}, {
-								$pull: {
-										"orderRows": {
-												"orderRowId": elem._id
+		OrderRowModel.find({
+				order: this._id
+		}, function(err, rows) {
+				if (!rows || !rows.length)
+						return callback();
+
+				async.eachSeries(rows, function(elem, eachCb) {
+						Availability.update({
+										product: elem.product,
+										'orderRows.orderRowId': elem._id
+								}, {
+										$pull: {
+												"orderRows": {
+														"orderRowId": elem._id
+												}
 										}
-								}
-						}, {
-								multi: true,
-								upsert: false
-						},
-						function(err) {
-								F.emit('productsAvailability:recalculateOnHand', {
-										product: {
-												_id: elem.product.toString()
-										}
+								}, {
+										multi: true,
+										upsert: false
+								},
+								function(err) {
+										F.emit('productsAvailability:recalculateOnHand', {
+												product: {
+														_id: elem.product.toString()
+												}
+										});
+										return eachCb(err);
 								});
-								return eachCb(err);
-						});
-		}, callback);
+				}, callback);
+		});
 };
 
 
@@ -3600,12 +3613,6 @@ const generateDeliveryPdf = function(id, model, callback) {
 
 						self.getById(id, function(err, doc) {
 
-								if (doc.status.isPrinted == null) {
-										doc.status.isPrinted = new Date();
-										doc.status.printedById = options.userId;
-										self.findByIdAndUpdate(doc._id, doc, function(err, doc) {});
-								}
-
 								const fixedWidthString = require('fixed-width-string');
 								const isbn = MODULE('utils').checksumIsbn;
 								// Generation du BL PDF et download
@@ -3666,7 +3673,7 @@ const generateDeliveryPdf = function(id, model, callback) {
 
 												if (doc.lines[i].type != 'SUBTOTAL' && doc.lines[i].qty != 0 && orderRow && orderRow.qty != 0)
 														tabLines.push({
-																seq: orderRow.numLine,
+																seq: orderRow.numLine || "",
 																ref: doc.lines[i].product.info.SKU.substring(0, 12),
 																description: "\\textbf{" + doc.lines[i].product.info.langs[0].name + "}" + (doc.lines[i].description ? "\\\\" + doc.lines[i].description : ""),
 																qty_order: doc.lines[i].qty,
@@ -4209,8 +4216,11 @@ function saveOrder(next) {
 		const EntityModel = MODEL('entity').Schema;
 		const WarehouseModel = MODEL('warehouse').Schema;
 
-		if (this.isNew)
+		if (this.isNew) {
 				this.history = [];
+				delete this.pdfModel;
+				this.pdfs = [];
+		}
 
 		async.waterfall([
 				function(wCb) {
@@ -4278,8 +4288,11 @@ function saveQuotation(next) {
 		var SeqModel = MODEL('Sequence').Schema;
 		var EntityModel = MODEL('entity').Schema;
 
-		if (this.isNew)
+		if (this.isNew) {
 				this.history = [];
+				delete this.pdfModel;
+				this.pdfs = [];
+		}
 
 		if (self.isNew && !self.ref)
 				return SeqModel.inc((self.forSales == true ? "PC" : "DA"), function(seq, number) {
@@ -4435,8 +4448,11 @@ function setNameOrdersFab(next) {
 		var SeqModel = MODEL('Sequence').Schema;
 		var EntityModel = MODEL('entity').Schema;
 
-		if (this.isNew)
+		if (this.isNew) {
 				this.history = [];
+				delete this.pdfModel;
+				this.pdfs = [];
+		}
 
 		if (self.isNew && !self.ref)
 				return SeqModel.inc("OF", function(seq, number) {
@@ -4777,9 +4793,11 @@ F.on('order:recalculateStatus', function(data, callback) {
 
 																//console.log("test", fullfillOnRow, elem.qty);
 
+																console.log(stockStatus);
+
 																if (fullfillOnRow != elem.qty)
-																		stockStatus.fulfillStatus = (stockStatus.fulfillStatus === 'NOA') ? 'NOA' : 'NOT';
-																else if (stockStatus.fulfillStatus == 'NOT' || stockStatus.fulfillStatus == 'ALL')
+																		stockStatus.fulfillStatus = (stockStatus.fulfillStatus === 'NOT') ? 'NOT' : 'NOA';
+																else if (stockStatus.fulfillStatus == 'NOR' || stockStatus.fulfillStatus == 'ALL')
 																		stockStatus.fulfillStatus = 'ALL';
 																else
 																		stockStatus.fulfillStatus = 'NOA';
@@ -5145,6 +5163,8 @@ F.on('order:sendDelivery', function(data) {
 						delete object.history;
 						delete object._type;
 						delete object.status;
+						delete object.pdfModel;
+						object.pdfs = [];
 
 						delivery = new DeliveryModel(object);
 
@@ -5212,6 +5232,9 @@ F.on('order:update', function(data, Model) {
 						return console.log(err);
 
 				if (!data.route)
+						return;
+
+				if (!result[0])
 						return;
 
 				if (data.userId)

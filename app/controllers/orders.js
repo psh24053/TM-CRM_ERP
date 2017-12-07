@@ -430,7 +430,6 @@ MetronicApp.controller('OrdersController', ['$scope', '$rootScope', '$http', '$m
 				};
 
 				$scope.createOrder = function() {
-						// CLOSE ORDER
 						var object = angular.copy($scope.object);
 
 						var id = object._id;
@@ -445,6 +444,8 @@ MetronicApp.controller('OrdersController', ['$scope', '$rootScope', '$http', '$m
 						delete object.history;
 						delete object._type;
 						delete object.order;
+						delete object.pdfModel;
+						object.pdfs = [];
 
 						for (var i = 0; i < object.lines.length; i++)
 								delete object.lines[i]._id; //Force create a new lines
@@ -491,6 +492,8 @@ MetronicApp.controller('OrdersController', ['$scope', '$rootScope', '$http', '$m
 						delete object.updatedAt;
 						delete object.ref;
 						delete object.history;
+						delete object.pdfModel;
+						object.pdfs = [];
 
 						var order = new Orders.bill(object);
 
@@ -508,10 +511,15 @@ MetronicApp.controller('OrdersController', ['$scope', '$rootScope', '$http', '$m
 				$scope.changeStatus = function(Status) {
 						$scope.object.Status = Status;
 						//return console.log($scope.object);
-						$scope.update(function(object) {
-								// Automatic create the first delivery
-								//if (object.Status == 'PROCESSING')
-								//    $scope.createDelivery();
+
+						Object.patch({
+								Id: null
+						}, {
+								_id: [$scope.object._id],
+								body: {
+										Status: Status
+								}
+						}, function(object) {
 								$scope.findOne();
 						});
 				};
@@ -615,6 +623,8 @@ MetronicApp.controller('OrdersController', ['$scope', '$rootScope', '$http', '$m
 						delete object.ref;
 						delete object.history;
 						delete object._type;
+						delete object.pdfModel;
+						object.pdfs = [];
 
 						if (object.forSales == true) {
 								var delivery = new Orders.delivery(object);
@@ -668,6 +678,8 @@ MetronicApp.controller('OrdersController', ['$scope', '$rootScope', '$http', '$m
 						delete object.ref;
 						delete object.history;
 						delete object._type;
+						delete object.pdfModel;
+						object.pdfs = [];
 
 						var stockReturn = new Orders.stockReturn(object);
 						var go = "stockreturn.show";
@@ -1571,22 +1583,17 @@ MetronicApp.controller('DeliveryListController', ['$scope', '$rootScope', '$http
 										this.push(key);
 						}, grid);
 
-						var localgrid = [];
 						if (grid)
-								angular.forEach(grid, function(value) {
-										Orders.delivery.get({
-												Id: value
-										}, function(object) {
-												if (!object)
-														return;
-
-												if (object.Status !== 'DRAFT')
-														return;
-
-												object.Status = "VALIDATED";
-												object.$update(function(response) {});
-										});
-								}, localgrid);
+								Orders.delivery.patch({
+										Id: null
+								}, {
+										_id: grid,
+										body: {
+												Status: Status
+										}
+								}, function(object) {
+										return console.log(object);
+								});
 
 						$scope.find();
 				};

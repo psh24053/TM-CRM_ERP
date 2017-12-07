@@ -1640,7 +1640,7 @@ billSchema.statics.generatePdfById = function(id, model, callback) {
 																		if (res && res.nModified)
 																				return wCb(); // Already exist and updated
 
-																		console.log(modelPdf);
+																		//console.log(modelPdf);
 
 																		//create new entry in order
 																		self.update({

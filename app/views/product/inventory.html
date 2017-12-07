@@ -46,8 +46,10 @@
 									<th>@(Ref)</th>
 									<th width="35%">@(Name)</th>
 									<th>@(products:OnHand)</th>
+									<th>@(products:StockOrderInProgress)</th>
+									<th>@(products:PhysicalStock)</th>
 									<th>@(products:LowAlertLevel)</th>
-									<th>@(orders:Expected)</th>
+									<th>@(products:IncomingStock)</th>
 								</tr>
 							</thead>
 							<tbody>
@@ -56,9 +58,11 @@
 										<a ui-sref="product.show({id:line._id})">{{line.sku}}</a>
 									</td>
 									<td>{{line.name}}</td>
-									<td>{{line.onHand || 0}}</td>
-									<td>{{line.minStockLevel || '--'}} </td>
-									<td>{{line.awaiting || '--'}} </td>
+									<td class="text-right">{{line.onHand || 0}}</td>
+									<td class="text-right">{{line.allocated || 0}}</td>
+									<td class="text-right">{{line.physicalStock || 0}}</td>
+									<td class="text-right">{{line.minStockLevel || '--'}} </td>
+									<td class="text-right">{{line.awaiting || '--'}} </td>
 								</tr>
 							</tbody>
 						</table>
@@ -75,10 +79,9 @@
 								<tr role="row" class="heading">
 									<th>@(Ref)</th>
 									<th width="35%">@(Name)</th>
-									<th>@(products:InStock)</th>
+									<th>@(products:OnHand)</th>
 									<th>@(products:LowAlertLevel)</th>
-									<th>@(Différence)</th>
-									<th>@(orders:Expected)</th>
+									<th>@(products:IncomingStock)</th>
 								</tr>
 							</thead>
 							<tbody>
@@ -89,7 +92,6 @@
 									<td>{{line.name}}</td>
 									<td>{{line.onHand || 0}}</td>
 									<td>{{line.minStockLevel || '--'}} </td>
-									<td>{{line.minStockLevel - line.onHand}}</td>
 									<td>{{line.awaiting || '--'}} </td>
 								</tr>
 							</tbody>
@@ -115,7 +117,7 @@
 								<tr ng-repeat="line in listObjectInComing">
 									<td><a ui-sref="product.show({id:line._id})">{{line.sku}}</a></td>
 									<td>{{line.products}}</td>
-									<td><a ui-sref="ordersupplier.show({id:line.purchaseOrder._id})">{{line.purchaseOrder.ref}}</a></td>
+									<td><a ui-sref="order.show({id:line.purchaseOrder._id, forSales:0})">{{line.purchaseOrder.ref}}</a></td>
 									<td>{{line.onHand}}</td>
 									<td>{{line.incomingStock}}</td>
 								</tr>

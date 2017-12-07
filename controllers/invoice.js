@@ -42,9 +42,10 @@ exports.install = function() {
 		F.route('/erp/api/bill', object.create, ['post', 'json', 'authorize'], 512);
 		F.route('/erp/api/bill/{id}', object.clone, ['post', 'json', 'authorize'], 512);
 		// Valid les Factures en bloc
-		F.route('/erp/api/bill/validate', object.validAll, ['post', 'json', 'authorize']);
-		F.route('/erp/api/bill/accounting', object.exportAccounting, ['put', 'json', 'authorize']);
+		//F.route('/erp/api/bill/validate', object.validAll, ['post', 'json', 'authorize']);
+		//F.route('/erp/api/bill/accounting', object.exportAccounting, ['put', 'json', 'authorize']);
 		F.route('/erp/api/bill/{id}', object.update, ['put', 'json', 'authorize'], 512);
+		F.route('/erp/api/bill', object.updateFieldsManyId, ['patch', 'json', 'authorize'], 512);
 		F.route('/erp/api/bill/{id}', object.destroy, ['delete', 'authorize']);
 		F.route('/erp/api/bill/pdf/{orderId}', object.generatePdf, ['put', 'authorize']);
 		F.route('/erp/api/bill/releveFacture/pdf/{societeId}', object.releve_facture, ['authorize']);
@@ -309,6 +310,8 @@ Object.prototype = {
 						delete bill.createdAt;
 						delete bill.updatedAt;
 						delete bill.history;
+						delete bill.pdfModel;
+						bill.pdfs = [];
 						bill.total_paid = 0;
 						bill.Status = "DRAFT";
 						bill.notes = [];

@@ -124,6 +124,7 @@ exports.install = function(options) {
 		F.route('/erp/api/order/{orderId}', object.clone, ['post', 'json', 'authorize'], 512);
 		F.route('/erp/api/order/{orderId}', object.show, ['authorize']);
 		F.route('/erp/api/order/{orderId}', object.update, ['put', 'json', 'authorize'], 512);
+		F.route('/erp/api/order', object.updateFieldsManyId, ['patch', 'json', 'authorize'], 512);
 		F.route('/erp/api/order/{orderId}', object.destroy, ['delete', 'authorize']);
 		F.route('/erp/api/order/{orderId}/{field}', object.updateField, ['put', 'json', 'authorize']);
 		F.route('/erp/api/order/file/{Id}', object.createFile, ['post', 'authorize']);
@@ -403,6 +404,8 @@ Object.prototype = {
 						delete order.history;
 						delete order.orderRows;
 						delete order.offer;
+						delete order.pdfModel;
+						order.pdfs = [];
 						order.total_paid = 0;
 						order.status = {};
 						order.Status = "DRAFT";
@@ -663,89 +666,8 @@ Object.prototype = {
 										function(err) {
 												if (err)
 														return wCb(err);
-												wCb(null, order, newRows);
-										});
-						},
-						function(order, newRows, wCb) {
-								if (self.query.quotation === 'true')
-										return wCb(null, order);
-
-								// Send to logistic and create first delivery
-								if (order.Status == "PROCESSING")
-										setTimeout2('orderSendDelivery:' + order._id.toString(), function() {
-												F.emit('order:sendDelivery', {
-														userId: self.user._id.toString(),
-														order: {
-																_id: order._id.toString()
-														}
-												});
-										}, 1000);
-
-								//Allocated product order
-								if (order.Status == "VALIDATED" && forSales)
-										return DeliveryModel.find({
-												order: order._id,
-												isremoved: {
-														$ne: true
-												}
-										}, "_id", function(err, delivery) {
-												if (err)
-														return wCb(err);
-
-												if (delivery && delivery.length) {
-														// Do NOT Allocated if One delivery
-														order.Status = "PROCESSING";
-														return wCb(null, order);
-												}
-
-												return order.setAllocated(newRows, function(err) {
-														if (err)
-																return wCb(err);
-
-														//order.Status = "VALIDATED";
-														wCb(null, order);
-												});
-										});
-
-								if (order.Status == "DRAFT" && forSales)
-										return order.unsetAllocated(newRows, function(err) {
-												if (err)
-														return wCb(err);
-
 												wCb(null, order);
 										});
-
-								if (order.Status == "CANCELED" && forSales)
-										return order.unsetAllocated(newRows, function(err) {
-												if (err)
-														return wCb(err);
-
-												if (DeliveryModel)
-														DeliveryModel.update({
-																order: order._id,
-																Status: 'DRAFT'
-														}, {
-																$set: {
-																		isremoved: true,
-																		Status: 'CANCELED',
-																		total_ht: 0,
-																		total_ttc: 0,
-																		total_tva: [],
-																		orderRows: []
-																}
-														}, {
-																multi: true,
-																upsert: false
-														}, function(err) {
-																if (err)
-																		console.log(err);
-														});
-
-												//Remove all Deliveries
-												wCb(null, order);
-										});
-
-								return wCb(null, order);
 						}
 				], function(err, order) {
 						if (err) {
@@ -803,6 +725,157 @@ Object.prototype = {
 						});
 				});
 		},
+		updateFieldsManyId: function() {
+				const self = this;
+				const body = self.body.body;
+				var OrderRowsModel = MODEL('orderRows').Schema;
+
+				var DeliveryModel, OrderModel;
+				const forSales = (self.query.forSales == 'false' ? false : true);
+
+				if (self.query.quotation === 'true') {
+						if (forSales == false)
+								OrderModel = MODEL('order').Schema.QuotationSupplier;
+						else
+								OrderModel = MODEL('order').Schema.QuotationCustomer;
+				} else {
+						if (forSales == false) {
+								OrderModel = MODEL('order').Schema.OrderSupplier;
+								DeliveryModel = MODEL('order').Schema.GoodsInNote;
+						} else {
+								OrderModel = MODEL('order').Schema.OrderCustomer;
+								DeliveryModel = MODEL('order').Schema.GoodsOutNote;
+						}
+				}
+
+				if (!self.body._id || !self.body._id.length)
+						return self.throw500("No id");
+
+				async.eachSeries(self.body._id, function(id, aCb) {
+						async.waterfall([
+								function(wCb) {
+									OrderModel.findByIdAndUpdate(id,body,{new:true}, wCb);
+								},
+									function(order, wCb) {
+											if (self.query.quotation === 'true')
+													return wCb(null, order);
+
+											// Send to logistic and create first delivery
+											if (order.Status == "PROCESSING")
+													setTimeout2('orderSendDelivery:' + order._id.toString(), function() {
+															F.emit('order:sendDelivery', {
+																	userId: self.user._id.toString(),
+																	order: {
+																			_id: order._id.toString()
+																	}
+															});
+													}, 1000);
+
+											//Allocated product order
+											if (order.Status == "VALIDATED" && order.forSales)
+													return DeliveryModel.find({
+															order: order._id,
+															isremoved: {
+																	$ne: true
+															}
+													}, "_id", function(err, delivery) {
+															if (err)
+																	return wCb(err);
+
+															if (delivery && delivery.length) {
+																	// Do NOT Allocated if One delivery
+																	order.Status = "PROCESSING";
+																	return wCb(null, order);
+															}
+
+															return order.setAllocated(function(err) {
+																	if (err)
+																			return wCb(err);
+
+																	//order.Status = "VALIDATED";
+																	wCb(null, order);
+															});
+													});
+
+											if (order.Status == "DRAFT" && forSales)
+													return order.unsetAllocated(function(err) {
+															if (err)
+																	return wCb(err);
+
+															wCb(null, order);
+													});
+
+											if (order.Status == "CANCELED" && forSales)
+													return order.unsetAllocated(function(err) {
+															if (err)
+																	return wCb(err);
+
+															if (DeliveryModel)
+																	DeliveryModel.update({
+																			order: order._id,
+																			Status: 'DRAFT'
+																	}, {
+																			$set: {
+																					isremoved: true,
+																					Status: 'CANCELED',
+																					total_ht: 0,
+																					total_ttc: 0,
+																					total_tva: [],
+																					orderRows: []
+																			}
+																	}, {
+																			multi: true,
+																			upsert: false
+																	}, function(err) {
+																			if (err)
+																					console.log(err);
+																	});
+
+															//Remove all Deliveries
+															wCb(null, order);
+													});
+
+											return wCb(null, order);
+								},
+								function(doc, wCb){
+
+											F.emit('order:recalculateStatus', {
+													userId: self.user._id.toString(),
+													order: {
+															_id: doc._id.toString()
+													}
+											});
+
+											F.emit('order:update', {
+													userId: self.user._id.toString(),
+													order: {
+															_id: doc._id.toString()
+													},
+													route: self.query.quotation == 'true' ? 'offer' : 'order'
+											}, OrderModel);
+
+											wCb();
+								}
+						], aCb);
+				}, function(err) {
+						if (err)
+								return self.json({
+										errorNotify: {
+												title: 'Erreur',
+												message: err
+										}
+								});
+
+						var doc = {};
+						doc.successNotify = {
+								title: "Success",
+								message: "Documents sauvegardes"
+						};
+						return self.json(doc);
+				});
+
+
+		},
 		/**
 		 * Delete an order
 		 */
@@ -823,31 +896,48 @@ Object.prototype = {
 
 				var OrderRowsModel = MODEL('orderRows').Schema;
 
-				OrderModel.update({
-						_id: id
-				}, {
-						$set: {
-								isremoved: true,
-								Status: 'CANCELED',
-								total_ht: 0,
-								total_ttc: 0,
-								total_tva: []
+				async.waterfall([
+						function(wCb) {
+								OrderModel.findById(id, wCb);
+						},
+						function(doc, wCb) {
+								if (doc.forSales)
+										return order.unsetAllocated(function(err) {
+												if (err)
+														return wCb(err);
+
+												wCb(null, doc);
+										});
+
+								wCb(null, doc);
+						},
+						function(doc, wCb) {
+								OrderModel.update({
+										_id: id
+								}, {
+										$set: {
+												isremoved: true,
+												Status: 'CANCELED',
+												total_ht: 0,
+												total_ttc: 0,
+												total_tva: []
+										}
+								}, wCb);
+						},
+						function(wCb) {
+								OrderRowsModel.update({
+										order: id
+								}, {
+										$set: {
+												isDeleted: true
+										}
+								}, wCb);
+
 						}
-				}, function(err) {
+				], function(err) {
 						if (err)
 								return self.throw500(err);
-
-						OrderRowsModel.update({
-								order: id
-						}, {
-								$set: {
-										isDeleted: true
-								}
-						}, function(err) {
-								if (err)
-										return self.throw500(err);
-								self.json({});
-						});
+						self.json({});
 				});
 		},
 
@@ -1987,6 +2077,8 @@ Object.prototype = {
 												delete facture.updatedAt;
 												delete facture.ref;
 												delete facture.history;
+												delete facture.pdfModel;
+												facture.pdfs = [];
 												facture.address = societe.address;
 												facture.supplier = societe._id;
 												facture.type = 'INVOICE_AUTO';

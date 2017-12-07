@@ -18,7 +18,7 @@
 						<th style="width: 30px;">#</th>
 						<th style="width: 45%;">@(products:ProductCode)</th>
 						<th class="center" style="width: 80px;">@(QtyOrder)</th>
-						<th class="center" style="width: 80px;">@(orders:QtyOnHand)</th>
+						<th class="center" style="width: 80px;" ng-show="editable">@(orders:QtyOnHand)</th>
 						<th class="center" style="width: 100px;">@(QtyFulfilled)</th>
 						<th class="center" style="width: 120px;">@(Reminder)</th>
 						<th class="center" style="width: 100px;">@(QtyDelivered)</th>
@@ -33,10 +33,10 @@
 						{{ line.orderQty || '0' }}
 					</td>
 
-					<td class="center" ng-if="line.product.info.productType.inventory" ng-class="{'font-red bold': (editable && line.orderQty > (line.onHand + line.fulfilled))}">
+					<td class="center" ng-show="editable" ng-if="line.product.info.productType.inventory" ng-class="{'font-red bold': (editable && line.orderQty > (line.onHand + line.fulfilled))}">
 						{{ line.onHand + line.fulfilled || '0' }}
 					</td>
-					<td class="center" ng-if="!line.product.info.productType.inventory">@(products:NoStock)</td>
+					<td class="center" ng-show="editable" ng-if="!line.product.info.productType.inventory">@(products:NoStock)</td>
 
 
 					<td class="center">

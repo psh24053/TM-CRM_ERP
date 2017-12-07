@@ -6873,7 +6873,7 @@ StockCorrection.prototype = {
 																order: order._id,
 																product: productId
 														}, function(err, rows) {
-																order.setAllocated(rows, function(err) {
+																order.setAllocated(function(err) {
 																		setTimeout2('orderRecalculateStatus:' + order._id.toString(), function() {
 																				F.emit('order:recalculateStatus', {
 																						userId: null,
