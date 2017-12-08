@@ -74,7 +74,7 @@
 			<!-- __OFFER__ -->
 			<ul ng-if="module('offer')" class="dropdown-menu pull-right" role="menu">
 				<li>
-					<a ng-show="object.Status =='DRAFT'" ng-click="changeStatus('VALIDATED')">
+					<a ng-show="object.Status =='DRAFT' && login.rights.offer.validate" ng-click="changeStatus('VALIDATED')">
                         <i class="fa fa-thumbs-o-up"></i> @(orders:ValidateQuotation)
                     </a>
 				</li>
@@ -90,7 +90,7 @@
 				</li>
 				<hr>
 				<li>
-					<a href="#" ng-show="object.Status =='VALIDATED' && login.rights.offer.create" ng-click="changeStatus('DRAFT')">
+					<a href="#" ng-show="object.Status =='VALIDATED' && login.rights.offer.validate" ng-click="changeStatus('DRAFT')">
                         <i class="fa fa-history"></i> @(ReOpen)
                     </a>
 				</li>
@@ -385,7 +385,7 @@
 						<span class="caption-helper"></span>
 					</div>
 				</div>
-				<div class="portlet-body" ng-hide="object.Status == 'DRAFT'">
+				<div class="portlet-body" ng-hide="object.Status == 'DRAFT' && !module('offer')">
 					<div class="row">
 						<div class="col-md-12">
 							<div class="form-group form-md-line-input">
@@ -395,7 +395,7 @@
 										<label for="pdfModel"></i> @(orders:PDFModels)</label>
 									</div>
 									<span class="input-group-btn btn-right">
-								<button class="btn green-haze" type="button" ng-disabled="object.Status == 'DRAFT'" ng-click="buildPDF()">@(Generate)</button>
+								<button class="btn green-haze" type="button" ng-click="buildPDF()">@(Generate)</button>
 						</span>
 								</div>
 							</div>

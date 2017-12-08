@@ -1537,80 +1537,97 @@ orderCustomerSchema.methods.setAllocated = function(callback) {
 				if (!rows || !rows.length)
 						return callback();
 
-		async.eachSeries(rows, function(elem, eachCb) {
+				async.eachSeries(rows, function(elem, eachCb) {
 
-				var lastSum = elem.qty;
-				var isFilled;
+						var lastSum = elem.qty;
+						var isFilled;
 
-				Availability.find({
-						warehouse: elem.warehouse,
-						product: elem.product
-				}, function(err, avalabilities) {
-						if (err)
-								return eachCb(err);
+						Availability.find({
+								warehouse: elem.warehouse,
+								product: elem.product
+						}, function(err, avalabilities) {
+								if (err)
+										return eachCb(err);
 
-						if (avalabilities.length) {
-								async.each(avalabilities, function(availability, cb) {
-										var allocated = 0;
-										var resultOnHand;
-										var existedRow = {
-												qty: 0
-										};
+								if (avalabilities.length) {
+										async.each(avalabilities, function(availability, cb) {
+												var allocated = 0;
+												var resultOnHand;
+												var existedRow = {
+														qty: 0
+												};
 
-										var allOnHand;
+												var allOnHand;
 
-										availability.orderRows.forEach(function(orderRow) {
-												if (orderRow.orderRowId.toString() === elem._id.toString())
-														existedRow = orderRow;
-												else
-														allocated += orderRow.qty;
-										});
+												availability.orderRows.forEach(function(orderRow) {
+														if (orderRow.orderRowId.toString() === elem._id.toString())
+																existedRow = orderRow;
+														else
+																allocated += orderRow.qty;
+												});
 
-										if (isFilled && elem.qty)
-												return cb();
-
-
-										allOnHand = availability.onHand + existedRow.qty;
-
-										if (!allOnHand)
-												return cb();
+												if (isFilled && elem.qty)
+														return cb();
 
 
-										resultOnHand = allOnHand - lastSum;
+												allOnHand = availability.onHand + existedRow.qty;
 
-										if (resultOnHand < 0) {
-												lastSum = Math.abs(resultOnHand);
-												resultOnHand = 0;
-										} else
-												isFilled = true;
+												if (!allOnHand)
+														return cb();
 
 
-										if (existedRow.orderRowId) {
+												resultOnHand = allOnHand - lastSum;
 
-												if (!elem.qty) {
-														Availability.update({
-																_id: availability._id
-														}, {
-																$inc: {
-																		onHand: existedRow.qty
-																},
-																$pull: {
-																		orderRows: {
-																				orderRowId: existedRow.orderRowId
+												if (resultOnHand < 0) {
+														lastSum = Math.abs(resultOnHand);
+														resultOnHand = 0;
+												} else
+														isFilled = true;
+
+
+												if (existedRow.orderRowId) {
+
+														if (!elem.qty) {
+																Availability.update({
+																		_id: availability._id
+																}, {
+																		$inc: {
+																				onHand: existedRow.qty
+																		},
+																		$pull: {
+																				orderRows: {
+																						orderRowId: existedRow.orderRowId
+																				}
 																		}
-																}
-														}, function(err) {
-																if (err)
-																		return cb(err);
+																}, function(err) {
+																		if (err)
+																				return cb(err);
 
-																cb();
-														});
-												} else {
-														Availability.update({
-																_id: availability._id,
-																'orderRows.orderRowId': existedRow.orderRowId
-														}, {
-																'orderRows.$.qty': resultOnHand ? lastSum : allOnHand,
+																		cb();
+																});
+														} else {
+																Availability.update({
+																		_id: availability._id,
+																		'orderRows.orderRowId': existedRow.orderRowId
+																}, {
+																		'orderRows.$.qty': resultOnHand ? lastSum : allOnHand,
+																		onHand: resultOnHand
+																}, function(err) {
+																		if (err)
+																				return cb(err);
+
+																		cb();
+																});
+														}
+
+												} else if (elem.qty) {
+														Availability.findByIdAndUpdate(availability._id, {
+																$addToSet: {
+																		orderRows: {
+																				orderRowId: elem._id,
+																				qty: resultOnHand ? lastSum : allOnHand
+																		}
+																},
 																onHand: resultOnHand
 														}, function(err) {
 																if (err)
@@ -1618,49 +1635,32 @@ orderCustomerSchema.methods.setAllocated = function(callback) {
 
 																cb();
 														});
+												} else {
+														return cb();
 												}
 
-										} else if (elem.qty) {
-												Availability.findByIdAndUpdate(availability._id, {
-														$addToSet: {
-																orderRows: {
-																		orderRowId: elem._id,
-																		qty: resultOnHand ? lastSum : allOnHand
+												setTimeout2('productInventory:' + availability.product.toString(), function() {
+														F.emit('inventory:update', {
+																userId: null,
+																product: {
+																		_id: availability.product.toString()
 																}
-														},
-														onHand: resultOnHand
-												}, function(err) {
-														if (err)
-																return cb(err);
+														});
+												}, 5000);
 
-														cb();
-												});
-										} else {
-												return cb();
-										}
+										}, function(err) {
+												if (err)
+														return eachCb(err);
 
-										setTimeout2('productInventory:' + availability.product.toString(), function() {
-												F.emit('inventory:update', {
-														userId: null,
-														product: {
-																_id: availability.product.toString()
-														}
-												});
-										}, 5000);
-
-								}, function(err) {
-										if (err)
-												return eachCb(err);
-
+												eachCb();
+										});
+								} else
 										eachCb();
-								});
-						} else
-								eachCb();
 
-				});
+						});
 
-		}, callback);
-	});
+				}, callback);
+		});
 };
 
 orderCustomerSchema.methods.unsetAllocated = function(callback) {

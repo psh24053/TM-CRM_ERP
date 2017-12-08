@@ -754,107 +754,109 @@ Object.prototype = {
 				async.eachSeries(self.body._id, function(id, aCb) {
 						async.waterfall([
 								function(wCb) {
-									OrderModel.findByIdAndUpdate(id,body,{new:true}, wCb);
+										OrderModel.findByIdAndUpdate(id, body, {
+												new: true
+										}, wCb);
 								},
-									function(order, wCb) {
-											if (self.query.quotation === 'true')
-													return wCb(null, order);
+								function(order, wCb) {
+										if (self.query.quotation === 'true')
+												return wCb(null, order);
 
-											// Send to logistic and create first delivery
-											if (order.Status == "PROCESSING")
-													setTimeout2('orderSendDelivery:' + order._id.toString(), function() {
-															F.emit('order:sendDelivery', {
-																	userId: self.user._id.toString(),
-																	order: {
-																			_id: order._id.toString()
-																	}
-															});
-													}, 1000);
+										// Send to logistic and create first delivery
+										if (order.Status == "PROCESSING")
+												setTimeout2('orderSendDelivery:' + order._id.toString(), function() {
+														F.emit('order:sendDelivery', {
+																userId: self.user._id.toString(),
+																order: {
+																		_id: order._id.toString()
+																}
+														});
+												}, 1000);
 
-											//Allocated product order
-											if (order.Status == "VALIDATED" && order.forSales)
-													return DeliveryModel.find({
-															order: order._id,
-															isremoved: {
-																	$ne: true
-															}
-													}, "_id", function(err, delivery) {
-															if (err)
-																	return wCb(err);
+										//Allocated product order
+										if (order.Status == "VALIDATED" && order.forSales)
+												return DeliveryModel.find({
+														order: order._id,
+														isremoved: {
+																$ne: true
+														}
+												}, "_id", function(err, delivery) {
+														if (err)
+																return wCb(err);
 
-															if (delivery && delivery.length) {
-																	// Do NOT Allocated if One delivery
-																	order.Status = "PROCESSING";
-																	return wCb(null, order);
-															}
+														if (delivery && delivery.length) {
+																// Do NOT Allocated if One delivery
+																order.Status = "PROCESSING";
+																return wCb(null, order);
+														}
 
-															return order.setAllocated(function(err) {
-																	if (err)
-																			return wCb(err);
+														return order.setAllocated(function(err) {
+																if (err)
+																		return wCb(err);
 
-																	//order.Status = "VALIDATED";
-																	wCb(null, order);
-															});
-													});
+																//order.Status = "VALIDATED";
+																wCb(null, order);
+														});
+												});
 
-											if (order.Status == "DRAFT" && forSales)
-													return order.unsetAllocated(function(err) {
-															if (err)
-																	return wCb(err);
+										if (order.Status == "DRAFT" && forSales)
+												return order.unsetAllocated(function(err) {
+														if (err)
+																return wCb(err);
 
-															wCb(null, order);
-													});
+														wCb(null, order);
+												});
 
-											if (order.Status == "CANCELED" && forSales)
-													return order.unsetAllocated(function(err) {
-															if (err)
-																	return wCb(err);
+										if (order.Status == "CANCELED" && forSales)
+												return order.unsetAllocated(function(err) {
+														if (err)
+																return wCb(err);
 
-															if (DeliveryModel)
-																	DeliveryModel.update({
-																			order: order._id,
-																			Status: 'DRAFT'
-																	}, {
-																			$set: {
-																					isremoved: true,
-																					Status: 'CANCELED',
-																					total_ht: 0,
-																					total_ttc: 0,
-																					total_tva: [],
-																					orderRows: []
-																			}
-																	}, {
-																			multi: true,
-																			upsert: false
-																	}, function(err) {
-																			if (err)
-																					console.log(err);
-																	});
+														if (DeliveryModel)
+																DeliveryModel.update({
+																		order: order._id,
+																		Status: 'DRAFT'
+																}, {
+																		$set: {
+																				isremoved: true,
+																				Status: 'CANCELED',
+																				total_ht: 0,
+																				total_ttc: 0,
+																				total_tva: [],
+																				orderRows: []
+																		}
+																}, {
+																		multi: true,
+																		upsert: false
+																}, function(err) {
+																		if (err)
+																				console.log(err);
+																});
 
-															//Remove all Deliveries
-															wCb(null, order);
-													});
+														//Remove all Deliveries
+														wCb(null, order);
+												});
 
-											return wCb(null, order);
+										return wCb(null, order);
 								},
-								function(doc, wCb){
+								function(doc, wCb) {
 
-											F.emit('order:recalculateStatus', {
-													userId: self.user._id.toString(),
-													order: {
-															_id: doc._id.toString()
-													}
-											});
+										F.emit('order:recalculateStatus', {
+												userId: self.user._id.toString(),
+												order: {
+														_id: doc._id.toString()
+												}
+										});
 
-											F.emit('order:update', {
-													userId: self.user._id.toString(),
-													order: {
-															_id: doc._id.toString()
-													},
-													route: self.query.quotation == 'true' ? 'offer' : 'order'
-											}, OrderModel);
+										F.emit('order:update', {
+												userId: self.user._id.toString(),
+												order: {
+														_id: doc._id.toString()
+												},
+												route: self.query.quotation == 'true' ? 'offer' : 'order'
+										}, OrderModel);
 
-											wCb();
+										wCb();
 								}
 						], aCb);
 				}, function(err) {
