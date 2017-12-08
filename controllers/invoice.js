@@ -429,6 +429,9 @@ Object.prototype = {
 						});
 				});
 		},
+		updateFieldsManyId: function() {
+				console.log("todo");
+		},
 		destroy: function(id) {
 				var BillModel = MODEL('invoice').Schema;
 				var self = this;

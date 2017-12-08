@@ -56,6 +56,7 @@ MetronicApp.factory('websocketService', ['$rootScope', '$timeout', function($roo
 		var _username = '';
 		var messages = [];
 		var users = [];
+		var loaded = false;
 
 		function onMessage(e) {
 				var data = JSON.parse(decodeURIComponent(e.data));
@@ -117,6 +118,12 @@ MetronicApp.factory('websocketService', ['$rootScope', '$timeout', function($roo
 						_ws = new ReconnectingWebSocket(url); //auto reconnect
 						_ws.onmessage = onMessage;
 						_ws.onopen = function() {
+								if (loaded) {
+										console.log("Reload");
+										$rootScope.$state.reload();
+								} else
+										loaded = true;
+
 								_ws.send(encodeURIComponent(JSON.stringify({
 										type: 'change',
 										message: _username

@@ -48,7 +48,6 @@ var setPrice = MODULE('utils').setPrice;
 var setDate = MODULE('utils').setDate;
 const round = MODULE('utils').round;
 
-
 const pdfSchema = new Schema({
 		// _id needed for download pdf file
 		filename: {

@@ -397,7 +397,8 @@ AvailabilitySchema.statics.getList = function(options, callback) {
 
 		var query = [{
 						$match: {
-								isJob: false
+								isJob: false,
+								archived: false
 						}
 				},
 				{

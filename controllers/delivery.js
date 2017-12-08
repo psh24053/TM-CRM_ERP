@@ -325,6 +325,220 @@ Object.prototype = {
 				});
 		},
 
+		update: function(id) {
+				var self = this;
+				var OrderRowsModel = MODEL('orderRows').Schema;
+
+
+				if (self.query.stockReturn == 'true') {
+						if (self.query.forSales == "false")
+								return;
+						//var DeliveryModel = MODEL('order').Schema.stockReturns;
+						else
+								var DeliveryModel = MODEL('order').Schema.stockReturns;
+				} else {
+						if (self.query.forSales == "false")
+								var DeliveryModel = MODEL('order').Schema.GoodsInNote;
+						else
+								var DeliveryModel = MODEL('order').Schema.GoodsOutNote;
+				}
+
+				self.body.editedBy = self.user._id;
+
+				if (!self.body.createdBy)
+						self.body.createdBy = self.user._id;
+
+				var rows = self.body;
+				for (var i = 0; i < rows.length; i++)
+						rows[i].sequence = i;
+
+				async.waterfall([
+								function(wCb) {
+
+										// CANCEL DELIVERY
+										if (self.body.Status == "DRAFT" && self.body.status.isInventory && self.body.forSales == true)
+												//cancelled inventory
+												return DeliveryModel.cancelInventories({
+																ids: [self.body._id]
+														},
+														function(err, doc) {
+																wCb(err);
+														});
+
+										return wCb();
+								},
+								function(wCb) {
+										MODULE('utils').sumTotal(rows, self.body.shipping, self.body.discount, self.body.supplier, function(err, result) {
+												if (err)
+														return wCb(err);
+
+
+												self.body.total_ht = result.total_ht;
+												self.body.total_taxes = result.total_taxes;
+												self.body.total_ttc = result.total_ttc;
+												//return console.log(result);
+												self.body.weight = 0;
+												//refresh weight only on qty sended
+												for (let i = 0, len = self.body.orderRows.length; i < len; i++) {
+
+														//Refresh qty total form locations
+														if (!self.body.forSales) {
+																if (self.body.orderRows[i].locationsReceived.length)
+																		self.body.orderRows[i].qty = _.sum(self.body.orderRows[i].locationsReceived, function(object) {
+																				return object.qty;
+																		});
+																else
+																		self.body.orderRows[i].qty = 0;
+														}
+
+
+														if (!self.body.orderRows[i].qty || self.body.orderRows[i].isDeleted)
+																continue;
+
+														self.body.weight += self.body.orderRows[i].qty * self.body.orderRows[i].product.weight;
+												}
+
+												wCb();
+												//console.log(self.body.orderRows[i].qty);
+										});
+								},
+								function(wCb) {
+
+										DeliveryModel.findByIdAndUpdate(id, self.body, {
+														new: true
+												})
+												.populate('logisticMethod')
+												.exec(function(err, delivery) {
+														if (err)
+																return wCb(err);
+
+														// Add logistic weight
+														if (delivery.logisticMethod && delivery.logisticMethod.weight && delivery.Status !== 'SEND')
+																delivery.weight += delivery.logisticMethod.weight;
+
+														//update shippingCost
+														if (delivery.Status !== 'SEND' && delivery.logisticMethod)
+																delivery.shippingCost.logistic = delivery.logisticMethod.price;
+
+														//delivery = _.extend(delivery, self.body);
+
+														//delivery.editedBy = self.user._id;
+
+														wCb(null, delivery);
+												});
+
+								},
+								function(delivery, wCb) {
+										// Delivery depend on other order
+										if (delivery.order.toString() !== id || !rows.length)
+												return wCb(null, delivery);
+
+										async.each(rows, function(orderRow, aCb) {
+												orderRow.order = delivery._id;
+
+												if (orderRow.isDeleted && !orderRow._id)
+														return aCb();
+
+												if (orderRow._id)
+														return OrderRowsModel.findByIdAndUpdate(orderRow._id, orderRow, aCb);
+
+												var orderRow = new OrderRowsModel(orderRow);
+												orderRow.save(aCb);
+										}, function(err, doc) {
+												wCb(err, delivery)
+										});
+								},
+								function(doc, wCb) {
+										// Calcul numLine for pdf
+										if (!doc.orderRows || !doc.orderRows.length)
+												return wCb(null, doc);
+
+										let cpt = 1;
+										async.forEachSeries(doc.orderRows, function(elem, aCb) {
+
+												if (!elem.isDeleted)
+														elem.numLine = cpt++;
+
+												return aCb();
+										}, function(err) {
+												return wCb(err, doc);
+										});
+								},
+								function(delivery, wCb) {
+										delivery.save(wCb);
+								},
+
+						],
+						function(error, doc) {
+								if (error) {
+										console.log(error);
+
+										return DeliveryModel.cancelInventories({
+														ids: [self.body._id]
+												},
+												function(err, doc) {
+														if (err)
+																console.log(err);
+
+														delivery.update({
+																'status.isReceived': null,
+																'status.isPrinted': null,
+																'status.isPacked': null,
+																'status.isPicked': null,
+																Status: 'DRAFT'
+														}, function(err, doc) {
+																if (err)
+																		return self.throw500(err);
+
+																return self.json({
+																		errorNotify: {
+																				title: 'Erreur',
+																				message: error
+																		}
+																});
+														});
+												});
+								}
+
+								//console.log(doc);
+								doc = doc.toObject();
+								doc.successNotify = {
+										title: "Success",
+										message: "Bon de livraison enregistre"
+								};
+								self.json(doc);
+
+								F.emit('order:update', {
+										userId: self.user._id.toString(),
+										order: {
+												_id: doc._id.toString()
+										},
+										route: 'delivery'
+								}, DeliveryModel);
+
+								F.emit('order:recalculateStatus', {
+										userId: self.user._id.toString(),
+										order: {
+												_id: doc.order.toString()
+										}
+								});
+
+								setTimeout2('notifydelivery:controllerAngular', function() {
+										F.emit('notify:controllerAngular', {
+												userId: null,
+												route: 'delivery',
+												// _id: doc._id.toString(),
+												// message: "Livraison " + doc.ref + ' modifiee.'
+										});
+								}, 60000);
+
+
+
+
+
+						});
+		},
+
 		updateFieldsManyId: function() {
 				const self = this;
 				const OrderRowsModel = MODEL('orderRows').Schema;
@@ -359,6 +573,7 @@ Object.prototype = {
 										if (body.Status == 'INSTOCK' && !doc.status.isReceived) {
 												doc.status.isReceived = new Date();
 												doc.status.receivedById = self.user._id;
+												doc.Status = "INSTOCK";
 										}
 
 										if (body.Status == "VALIDATED" && !doc.status.isInventory && doc.forSales == true && !self.query.stockReturn) {
@@ -586,207 +801,6 @@ Object.prototype = {
 				});
 		},
 
-		update: function(id) {
-				var self = this;
-				var OrderRowsModel = MODEL('orderRows').Schema;
-
-
-				if (self.query.stockReturn == 'true') {
-						if (self.query.forSales == "false")
-								return;
-						//var DeliveryModel = MODEL('order').Schema.stockReturns;
-						else
-								var DeliveryModel = MODEL('order').Schema.stockReturns;
-				} else {
-						if (self.query.forSales == "false")
-								var DeliveryModel = MODEL('order').Schema.GoodsInNote;
-						else
-								var DeliveryModel = MODEL('order').Schema.GoodsOutNote;
-				}
-
-				self.body.editedBy = self.user._id;
-
-				if (!self.body.createdBy)
-						self.body.createdBy = self.user._id;
-
-				var rows = self.body;
-				for (var i = 0; i < rows.length; i++)
-						rows[i].sequence = i;
-
-				async.waterfall([
-								function(wCb) {
-
-										// CANCEL DELIVERY
-										if (self.body.Status == "DRAFT" && self.body.status.isInventory && self.body.forSales == true)
-												//cancelled inventory
-												return DeliveryModel.cancelInventories({
-																ids: [self.body._id]
-														},
-														function(err, doc) {
-																wCb(err);
-														});
-
-										return wCb();
-								},
-								function(wCb) {
-										MODULE('utils').sumTotal(rows, self.body.shipping, self.body.discount, self.body.supplier, function(err, result) {
-												if (err)
-														return wCb(err);
-
-
-												self.body.total_ht = result.total_ht;
-												self.body.total_taxes = result.total_taxes;
-												self.body.total_ttc = result.total_ttc;
-												//return console.log(result);
-												self.body.weight = 0;
-												//refresh weight only on qty sended
-												for (let i = 0, len = self.body.orderRows.length; i < len; i++) {
-														if (!self.body.orderRows[i].qty || self.body.orderRows[i].isDeleted)
-																continue;
-
-														self.body.weight += self.body.orderRows[i].qty * self.body.orderRows[i].product.weight;
-												}
-
-												wCb();
-												//console.log(self.body.orderRows[i].qty);
-										});
-								},
-								function(wCb) {
-
-										DeliveryModel.findByIdAndUpdate(id, self.body, {
-														new: true
-												})
-												.populate('logisticMethod')
-												.exec(function(err, delivery) {
-														if (err)
-																return wCb(err);
-
-														// Add logistic weight
-														if (delivery.logisticMethod && delivery.logisticMethod.weight && delivery.Status !== 'SEND')
-																delivery.weight += delivery.logisticMethod.weight;
-
-														//update shippingCost
-														if (delivery.Status !== 'SEND' && delivery.logisticMethod)
-																delivery.shippingCost.logistic = delivery.logisticMethod.price;
-
-														//delivery = _.extend(delivery, self.body);
-
-														//delivery.editedBy = self.user._id;
-
-														wCb(null, delivery);
-												});
-
-								},
-								function(delivery, wCb) {
-										// Delivery depend on other order
-										if (delivery.order.toString() !== id || !rows.length)
-												return wCb(null, delivery);
-
-										async.each(rows, function(orderRow, aCb) {
-												orderRow.order = delivery._id;
-
-												if (orderRow.isDeleted && !orderRow._id)
-														return aCb();
-
-												if (orderRow._id)
-														return OrderRowsModel.findByIdAndUpdate(orderRow._id, orderRow, aCb);
-
-												var orderRow = new OrderRowsModel(orderRow);
-												orderRow.save(aCb);
-										}, function(err, doc) {
-												wCb(err, delivery)
-										});
-								},
-								function(doc, wCb) {
-										// Calcul numLine for pdf
-										if (!doc.orderRows || !doc.orderRows.length)
-												return wCb(null, doc);
-
-										let cpt = 1;
-										async.forEachSeries(doc.orderRows, function(elem, aCb) {
-
-												if (!elem.isDeleted)
-														elem.numLine = cpt++;
-
-												return aCb();
-										}, function(err) {
-												return wCb(err, doc);
-										});
-								},
-								function(delivery, wCb) {
-										delivery.save(wCb);
-								},
-
-						],
-						function(error, doc) {
-								if (error) {
-										console.log(error);
-
-										return DeliveryModel.cancelInventories({
-														ids: [self.body._id]
-												},
-												function(err, doc) {
-														if (err)
-																console.log(err);
-
-														delivery.update({
-																'status.isReceived': null,
-																'status.isPrinted': null,
-																'status.isPacked': null,
-																'status.isPicked': null,
-																Status: 'DRAFT'
-														}, function(err, doc) {
-																if (err)
-																		return self.throw500(err);
-
-																return self.json({
-																		errorNotify: {
-																				title: 'Erreur',
-																				message: error
-																		}
-																});
-														});
-												});
-								}
-
-								//console.log(doc);
-								doc = doc.toObject();
-								doc.successNotify = {
-										title: "Success",
-										message: "Bon de livraison enregistre"
-								};
-								self.json(doc);
-
-								F.emit('order:update', {
-										userId: self.user._id.toString(),
-										order: {
-												_id: doc._id.toString()
-										},
-										route: 'delivery'
-								}, DeliveryModel);
-
-								F.emit('order:recalculateStatus', {
-										userId: self.user._id.toString(),
-										order: {
-												_id: doc.order.toString()
-										}
-								});
-
-								setTimeout2('notifydelivery:controllerAngular', function() {
-										F.emit('notify:controllerAngular', {
-												userId: null,
-												route: 'delivery',
-												// _id: doc._id.toString(),
-												// message: "Livraison " + doc.ref + ' modifiee.'
-										});
-								}, 60000);
-
-
-
-
-
-						});
-		},
 		destroyList: function(id) {
 				var self = this;
 

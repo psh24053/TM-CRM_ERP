@@ -2177,7 +2177,7 @@ baseSchema.statics.getById = function(id, callback) {
 
 								//console.log(data);
 
-								if (order.Status == 'DRAFT' && item.qty > (data.onHand + data.allocated))
+								if (order.Status == 'DRAFT' && order.forSales && item.qty > (data.onHand + data.allocated))
 										item.qty = data.onHand + data.allocated;
 
 								return _.extend(item, {
@@ -3032,7 +3032,7 @@ var goodsInNoteSchema = new Schema({
 						default: false
 				},
 
-				qty: Number // TODO Remove
+				qty: Number // Update by save hook
 		}],
 
 		logisticMethod: {
@@ -3960,7 +3960,7 @@ var stockCorrectionSchema = new Schema({
 						qty: Number
 				}],
 
-				qty: Number //TODO Remove
+				qty: Number //update by save hook
 		}]
 });
 
@@ -5124,9 +5124,11 @@ F.on('order:sendDelivery', function(data) {
 		//const OrderRows = MODEL('orderRows').Schema;
 		var ObjectId = MODULE('utils').ObjectId;
 
-		const OrderModel = exports.Schema.OrderCustomer;
+		var OrderModel = exports.Schema.OrderCustomer;
+		if (data.order && data.order.forSales == false)
+				OrderModel = exports.Schema.OrderSupplier;
 
-		//console.log(data);
+		console.log(data);
 		console.log("Update emit order sendFirstDelivery", data);
 		OrderModel.findOne({
 				_id: data.order._id,
@@ -5140,10 +5142,9 @@ F.on('order:sendDelivery', function(data) {
 
 				var object = order.toObject();
 
-				if (order.forSales)
-						var DeliveryModel = exports.Schema.GoodsOutNote;
-				else
-						var DeliveryModel = exports.Schema.goodsInNotes;
+				var DeliveryModel = exports.Schema.GoodsOutNote;
+				if (order.forSales == false)
+						DeliveryModel = exports.Schema.GoodsInNote;
 
 				DeliveryModel.findOne({
 						order: order._id

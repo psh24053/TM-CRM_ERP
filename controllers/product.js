@@ -5975,7 +5975,9 @@ Taxes.prototype = {
 
 				_id = _id && _id.length >= 24 ? MODULE('utils').ObjectId(_id) : null;
 
-				TaxesModel.find({}, function(err, result) {
+				TaxesModel.find({
+						isActive: true
+				}, function(err, result) {
 						if (err)
 								return self.throw500(err);
 

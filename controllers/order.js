@@ -768,7 +768,8 @@ Object.prototype = {
 														F.emit('order:sendDelivery', {
 																userId: self.user._id.toString(),
 																order: {
-																		_id: order._id.toString()
+																		_id: order._id.toString(),
+																		forSales: order.forSales
 																}
 														});
 												}, 1000);

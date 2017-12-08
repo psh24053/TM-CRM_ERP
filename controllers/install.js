@@ -5453,7 +5453,32 @@ F.on('load', function() {
 
 								}
 
-								async.waterfall([stockCorrection, goodsInNote], function(err) {
+								function productsAvailabilityArchive(aCb) {
+										const Model = MODEL('productsAvailability').Schema;
+
+										console.log("update productsAvailability archived");
+
+										Model.find({
+												archived: {
+														$ne: true
+												}
+										}, function(err, docs) {
+												if (err)
+														return aCb(err);
+
+												if (!docs)
+														return aCb();
+
+												async.each(docs, function(elem, eCb) {
+														Model.findByIdAndUpdate(elem._id, {
+																archived: false
+														}, eCb);
+												}, aCb);
+										});
+
+								}
+
+								async.waterfall([stockCorrection, goodsInNote, productsAvailabilityArchive], function(err) {
 										if (err)
 												return console.log(err);
 
