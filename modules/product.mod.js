@@ -114,7 +114,7 @@ exports.menus = {
 								"url": "/erp/#!/product/pricelevel.html",
 								"position": 20,
 								"usertype": 2,
-								"perms": "product.readTODO",
+								"perms": "product.read",
 								"enabled": true,
 								"icon": "fa fa-money",
 								"title": "products:PriceLevel"
