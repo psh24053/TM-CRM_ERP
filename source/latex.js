@@ -304,7 +304,7 @@ Template.prototype.applyHandlers = function() {
 										return v.replace(/_/gi, "\\_")
 												.replace(/%/gi, "\\%")
 												.replace(/&/gi, "\\&")
-												.replace(/\n/g, " ");
+												.replace(/\n/g, "\\\\");
 								});
 
 								self.on('json', function(dirPath) {
@@ -332,7 +332,7 @@ Template.prototype.applyHeadFoot = function() {
 		const emit = this.emit.bind(this);
 		const EntityModel = MODEL('entity').Schema;
 
-		
+
 
 		return function(tex, done) {
 				Dict.dict({
@@ -494,8 +494,6 @@ function parse(stream) {
  * @returns {undefined}
  */
 function deleteFolderRecursive(path) {
-
-		return;
 
 		var files = [];
 		if (fs.existsSync(path)) {

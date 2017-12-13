@@ -92,3 +92,41 @@ function getjsonfile (file)
 json = utilities.json.tolua(getjsonfile('data.json'))
 
 \end{luacode*}
+
+\begin{luacode*}
+
+  function printTotal()
+	local lines = json.total;
+
+	for i,v in ipairs(lines) do
+		if v.tophline then
+			if v.tophline == 2 then
+				tex.sprint('\\hline')
+			end
+			
+			tex.sprint('\\hline')
+		end
+		
+		if v.italic then
+			tex.sprint(string.format([[\textit{%s} &]], v.label))
+		else
+			tex.sprint(string.format([[\textbf{%s} &]], v.label))
+		end
+
+		if v.unit then		
+			tex.sprint(string.format([[%.2f %s \\]], v.value, v.unit or ""))
+		else
+			tex.sprint(string.format([[%.2f \euro \\]], v.value))
+		end
+		
+		
+		if v.buttomhline then
+			if v.buttomhline == 2 then
+				tex.sprint('\\hline')
+			end
+			
+			tex.sprint('\\hline')
+		end
+	end
+  end
+\end{luacode*}

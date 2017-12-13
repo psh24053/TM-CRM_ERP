@@ -20,7 +20,7 @@
 						<th class="center" style="width: 80px;">@(QtyOrder)</th>
 						<th class="center" style="width: 100px;">@(QtyFulfilled)</th>
 						<th class="center" style="width: 100px;">@(QtyToBeReturned)</th>
-						<th style="width: 50px;">@(products:Warehouses)</th>
+						<th style="width: 100px;">@(Location)</th>
 				</thead>
 				<tr ng-repeat="line in linesModel| filter:filterLine" ng-class="{success:line.type == 'SUBTOTAL',bold:line.type == 'SUBTOTAL'}">
 					<td><a ui-sref="product.show.informations({id:line.product._id})">{{ line.product.info.SKU || 'Erreur' }}</a></td>
@@ -28,14 +28,14 @@
 					<td class="center">{{ line.orderQty || '0' }}</td>
 					<td class="center">{{ line.deliveryQty || '0' }}</td>
 					<td class="center">
-						<span e-name="qty" editable-number="line.qty" e-ng-change="calculMontantHT(line, $data, 'qty')" e-min="0" e-max="{{line.orderQty}}" e-step="any" e-form="tableform">
-                        {{ line.qty || 0 }} <small>{{line.product.unit}}</small>
+						<span e-name="qty" editable-number="line.locationsReceived[0].qty" e-min="0" e-max="{{line.orderQty}}" e-step="any" e-form="tableform">
+                        {{ line.locationsReceived[0].qty || 0 }} <small>{{line.product.unit}}</small>
                         </span>
 					</td>
-					<td ng-if="true">
-						<span editable-select="line.warehouse.name._id" e-form="tableform" e-ng-options="s._id as s.name for s in $dict.warehouse">
+					<td>
+						<span editable-select="line.locationsReceived[0].location._id" e-form="tableform" e-ng-options="s._id as s.name for s in locations">
                             <span ng-repeat="location in line.locationsReceived">
-                                <span>{{ line.warehouse.name }}</span>
+                                <span>{{ location.location.name }}</span>
 						</span>
 						</span>
 					</td>

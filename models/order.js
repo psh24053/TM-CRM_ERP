@@ -1158,6 +1158,9 @@ baseSchema.statics.generatePdfById = function(id, model, callback) {
 												var tabLines = [];
 
 												for (var i = 0; i < doc.lines.length; i++) {
+
+
+
 														switch (doc.lines[i].type) {
 																case 'SUBTOTAL':
 																		tabLines.push({
@@ -1357,6 +1360,8 @@ baseSchema.statics.generatePdfById = function(id, model, callback) {
 																		if (err)
 																				return wCb(err);
 
+																				console.log("end");
+
 																		if (res && res.nModified)
 																				return wCb(); // Already exist and updated
 
@@ -1394,6 +1399,7 @@ baseSchema.statics.generatePdfById = function(id, model, callback) {
 				}
 		], callback);
 };
+
 orderCustomerSchema.methods.setAllocated = function(callback) {
 		const Availability = MODEL('productsAvailability').Schema;
 		const OrderRowModel = MODEL('orderRows').Schema;
@@ -1869,6 +1875,8 @@ baseSchema.statics.getById = function(id, callback) {
 																										$eq: ['$$delivery._type', 'GoodsOutNote']
 																								}, {
 																										$eq: ['$$delivery._type', 'GoodsInNote']
+																								},{
+																										$eq: ['$$delivery._type', 'stockReturns']
 																								}]
 																						}]
 																				}
@@ -1923,6 +1931,7 @@ baseSchema.statics.getById = function(id, callback) {
 																'deliveries._id': 1,
 																'deliveries.status': 1,
 																'deliveries.datedl': 1,
+																'deliveries._type':1,
 																'deliveries.orderRows': {
 																		$filter: {
 																				input: "$deliveries.orderRows",
@@ -1941,8 +1950,27 @@ baseSchema.statics.getById = function(id, callback) {
 																path: '$deliveries.orderRows',
 																preserveNullAndEmptyArrays: true
 														}
-												},
-												{
+												},{
+													$project: {
+															_id: 1,
+															orderQty: 1,
+															order: 1,
+															product: 1,
+															sequence: 1,
+															'deliveries.ref': 1,
+															'deliveries._id': 1,
+															'deliveries.status': 1,
+															'deliveries.datedl': 1,
+															'deliveries.orderRows.qty' : {
+																$cond : { if : {$eq: ['$deliveries._type', 'stockReturns']},
+															then : {$multiply : [-1 , "$deliveries.orderRows.qty"]},
+														else : "$deliveries.orderRows.qty"
+													}
+													},
+															refProductSupplier: 1,
+															description: 1
+													}
+												},{
 														$group: {
 																_id: "$_id",
 																orderQty: {
@@ -3505,31 +3533,6 @@ const generateDeliveryPdf = function(id, model, callback) {
 										// Array of lines
 										var tabLines = [];
 
-										tabLines.push({
-												keys: [{
-																key: "seq",
-																type: "string"
-														}, {
-																key: "ref",
-																type: "string"
-														},
-														{
-																key: "description",
-																type: "area"
-														},
-														{
-																key: "qty_order",
-																type: "number",
-																precision: 0
-														},
-														{
-																key: "qty",
-																type: "number",
-																precision: 0
-														}
-												]
-										});
-
 										for (var i = 0; i < doc.lines.length; i++) {
 												//console.log(doc.orderRows[i]);
 
@@ -3542,12 +3545,11 @@ const generateDeliveryPdf = function(id, model, callback) {
 														tabLines.push({
 																seq: orderRow.numLine || "",
 																ref: doc.lines[i].product.info.SKU.substring(0, 12),
-																description: "\\textbf{" + doc.lines[i].product.info.langs[0].name + "}" + (doc.lines[i].description ? "\\\\" + doc.lines[i].description : ""),
+																label: doc.lines[i].product.info.langs[0].name,
+																description: doc.lines[i].description,
 																qty_order: doc.lines[i].qty,
-																qty: {
-																		value: orderRow.qty,
-																		unit: (doc.lines[i].product.unit ? " " + doc.lines[i].product.unit : "U")
-																}
+																qty: orderRow.qty,
+																unit:doc.lines[i].product.unit || "U"
 														});
 
 												/*if (doc.lines[i].product.id.pack && doc.lines[i].product.id.pack.length) {
@@ -3568,26 +3570,12 @@ const generateDeliveryPdf = function(id, model, callback) {
 										}
 
 										// Array of totals
-										var tabTotal = [{
-												keys: [{
-																key: "label",
-																type: "string"
-														}, {
-																key: "total",
-																type: "number",
-																precision: 3
-														},
-														{
-																key: "unit",
-																type: "string"
-														}
-												]
-										}];
+										var tabTotal = [];
 
 										//Total HT
 										tabTotal.push({
 												label: "Quantité totale : ",
-												total: _.sum(doc.orderRows, function(line) {
+												value: _.sum(doc.orderRows, function(line) {
 														return line.qty;
 												}),
 												unit: "pièce(s)"
@@ -3597,7 +3585,7 @@ const generateDeliveryPdf = function(id, model, callback) {
 										if (doc.weight)
 												tabTotal.push({
 														label: "Poids total : ",
-														total: doc.weight,
+														value: doc.weight,
 														unit: "kg"
 												});
 
@@ -3628,90 +3616,58 @@ const generateDeliveryPdf = function(id, model, callback) {
 
 										Latex.Template(modelPdf.latex, doc.entity)
 												.apply({
-														"NUM": {
-																"type": "string",
+														ref: {
 																"value": doc.ref
 														},
-														"BILL.NAME": {
-																"type": "string",
-																"value": doc.address.name || doc.supplier.fullName
+														bill: {
+															value : {
+																name : doc.address.name || doc.supplier.fullName,
+																address :  doc.address
+														}
+													},
+														to : {
+															value: {
+																address : doc.shippingAddress,
+															tva : societe.companyInfo.idprof6,
+															code_client : societe.salesPurchases.ref
+														}
 														},
-														"BILL.ADDRESS": {
-																"type": "area",
-																"value": doc.address.street
+														title: {
+																value: modelPdf.langs[0].title
 														},
-														"BILL.ZIP": {
-																"type": "string",
-																"value": doc.address.zip
+														ref_client: {
+																value: doc.ref_client
 														},
-														"BILL.TOWN": {
-																"type": "string",
-																"value": doc.address.city
+														delivery_mode: {
+																value: doc.delivery_mode
 														},
-														"DESTINATAIRE.NAME": {
-																"type": "string",
-																"value": doc.shippingAddress.name
-														},
-														"DESTINATAIRE.ADDRESS": {
-																"type": "area",
-																"value": doc.shippingAddress.street
-														},
-														"DESTINATAIRE.ZIP": {
-																"type": "string",
-																"value": doc.shippingAddress.zip
-														},
-														"DESTINATAIRE.TOWN": {
-																"type": "string",
-																"value": doc.shippingAddress.city
-														},
-														"DESTINATAIRE.TVA": {
-																"type": "string",
-																"value": societe.companyInfo.idprof6
-														},
-														"CODECLIENT": {
-																"type": "string",
-																"value": societe.salesPurchases.code_client
-														},
-														//"TITLE": {"type": "string", "value": doc.title},
-														"REFCLIENT": {
-																"type": "string",
-																"value": doc.ref_client
-														},
-														"DELIVERYMODE": {
-																"type": "string",
-																"value": doc.delivery_mode
-														},
-														"BARCODE": {
-																type: "string",
+														barcode: {
 																value: barcode
 														},
-														"DATEC": {
+														"datec": {
 																"type": "date",
 																"value": doc.datec,
 																"format": CONFIG('dateformatShort')
 														},
-														"DATEEXP": {
+														"dateexp": {
 																"type": "date",
 																"value": doc.datedl,
 																"format": CONFIG('dateformatShort')
 														},
-														"ORDER": {
-																"type": "string",
+														"order": {
 																"value": (doc.order && doc.order.ref ? doc.order.ref : "-")
 														},
-														"NOTES": {
-																"type": "area",
+														"notes": {
 																"value": (doc.notes.length ? doc.notes[0].note : "")
 														},
-														"TABULAR": {
-																//template: (discount ? "tablePriceDiscountLines" : "tablePriceLines"),
+														"lines": {
 																value: tabLines
 														},
-														"TOTALQTY": {
+														"total": {
 																value: tabTotal
 														}
 												})
-												.on('error', callback)
+												.on('error', wCb)
 												.finalize(function(tex) {})
 												.compile()
 												.pipe(fs.createWriteStream(F.path.root() + '/uploads/pdf/' + doc._id + "_" + modelPdf.code + ".pdf"))
@@ -3758,7 +3714,7 @@ const generateDeliveryPdf = function(id, model, callback) {
 																}, function(err, doc) {
 																		if (err)
 																				return wCb(err);
-
+																				console.log("end");
 																		wCb();
 																});
 														});
@@ -3867,8 +3823,7 @@ var stockReturnSchema = new Schema({
 				_id: false,
 				orderRowId: {
 						type: ObjectId,
-						ref: 'orderRows',
-						default: null
+						ref: 'orderRows'
 				},
 				product: {
 						type: ObjectId,
@@ -3883,8 +3838,7 @@ var stockReturnSchema = new Schema({
 						_id: false,
 						location: {
 								type: ObjectId,
-								ref: 'location',
-								default: null
+								ref: 'location'
 						},
 						qty: Number
 				}],
@@ -4562,12 +4516,15 @@ F.on('order:recalculateStatus', function(data, callback) {
 												OrderModel.aggregate([{
 														$match: {
 																'orderRows.orderRowId': elem._id,
-																_type: {
-																		$ne: 'stockReturns'
-																},
+																//_type: {
+																//		$ne: 'stockReturns'
+																//},
+																$or : [{
 																"status.isInventory": {
 																		$ne: null
-																},
+																}},
+																{_type: 'stockReturns'}
+															],
 																Status: {
 																		$ne: 'CANCELED'
 																},
@@ -4587,7 +4544,7 @@ F.on('order:recalculateStatus', function(data, callback) {
 																				}
 																		}
 																},
-
+																_type :1,
 																status: 1
 														}
 												}, {
@@ -4596,13 +4553,19 @@ F.on('order:recalculateStatus', function(data, callback) {
 																orderRow: {
 																		$arrayElemAt: ['$orderRow', 0]
 																},
+																_type : 1,
 																status: 1
 														}
 												}, {
 														$project: {
 																ref: '$ref',
 																orderRow: '$orderRow.orderRowId',
-																qty: '$orderRow.qty',
+																qty : {
+																	$cond : { if : {$eq: ['$_type', 'stockReturns']},
+																then : {$multiply : [-1 , "$orderRow.qty"]},
+																else : '$orderRow.qty'
+															}
+														},
 																status: 1
 														}
 												}], function(err, docs) {
@@ -4611,7 +4574,7 @@ F.on('order:recalculateStatus', function(data, callback) {
 														var allocatedOnRow;
 														var shippedDocs;
 
-														//console.log(docs);
+														console.log(docs);
 
 														if (err)
 																return eahcCb(err);
@@ -4660,7 +4623,7 @@ F.on('order:recalculateStatus', function(data, callback) {
 
 																//console.log("test", fullfillOnRow, elem.qty);
 
-																console.log(stockStatus);
+																//console.log(stockStatus);
 
 																if (fullfillOnRow != elem.qty)
 																		stockStatus.fulfillStatus = (stockStatus.fulfillStatus === 'NOT') ? 'NOT' : 'NOA';

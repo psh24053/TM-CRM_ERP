@@ -41,217 +41,215 @@
 					<save ng-disabled="object.Status !=='DRAFT'" mode="object._id" ng-create="create()" ng-update="update()" back-to="backTo" params-back-to="{forSales : object.forSales?1:0}" class="actions btn-set"></save>
 				</div>
 				<div class="portlet-body">
-					<div class="form-body">
-						<div class="row" ng-if="module('delivery') && object._id && object.Status !='DRAFT'">
-							<div class="col-md-12">
-								<div class="portlet light bordered" ng-show="object.forSales">
-									<div class="row">
-										<div class="col-md-4">
-											<div class="btn-group btn-group-solid">
-												<a ng-href="/erp/api/delivery/pdf/{{object.ref}}" target="_blank" class="btn blue">
+					<div class="row" ng-if="module('delivery') && object._id && object.Status !='DRAFT'">
+						<div class="col-md-12">
+							<div class="portlet light bordered" ng-show="object.forSales">
+								<div class="row">
+									<div class="col-md-4">
+										<div class="btn-group btn-group-solid">
+											<a ng-href="/erp/api/delivery/pdf/{{object.ref}}" target="_blank" class="btn blue">
                                                     <i class="fa fa-print"></i> @(Print) BL </a>
-												<a ng-show="object.bill" ng-href="/erp/api/bill/pdf/{{object.bill.ref}}" target="_blank" type="button" class="btn btn-warning">
+											<a ng-show="object.bill" ng-href="/erp/api/bill/pdf/{{object.bill.ref}}" target="_blank" type="button" class="btn btn-warning">
                                                     <i class="fa fa-print"></i> @(Print) FA</a>
-											</div>
-											<span>{{object.status.isPrinted | date:'dd/MM/yyyy HH:mm'}}</span>
 										</div>
-										<div class="col-md-8">
-											<div class="row">
-												<div class="col-md-4">
-													<button ng-disabled="object.status.isShipped" class="btn" ng-click="deliveryAction('VALIDATED','picked',object.ref)" class="btn" ng-class="{'default':!object.status.isPicked,'green' : object.status.isPicked}"> @(orders:Picked) <i class="fa fa-check-square"></i></button>
-													<span>{{object.status.isPicked | date:'dd/MM/yyyy HH:mm'}}</span>
-												</div>
-												<div class="col-md-4">
-													<button ng-disabled="object.status.isShipped" class="btn" ng-click="deliveryAction('VALIDATED','packed',object.ref)" class="btn" ng-class="{'default':!object.status.isPacked,'green' : object.status.isPacked}"> @(orders:Packed) <i class="fa fa-archive"></i></button>
-													<span>{{object.status.isPacked | date:'dd/MM/yyyy HH:mm'}}</span>
-												</div>
-												<div class="col-md-4">
-													<button ng-disabled="!object.status.isPacked || object.status.isShipped" class="btn" ng-click="deliveryAction('SEND','shipped',object.ref)" class="btn" ng-class="{'default':!object.status.isShipped,'green' : object.status.isShipped}"> @(orders:Shipped) <i class="fa fa-truck"></i></button>
-													<span>{{object.status.isShipped | date:'dd/MM/yyyy HH:mm'}}</span>
-												</div>
+										<span>{{object.status.isPrinted | date:'dd/MM/yyyy HH:mm'}}</span>
+									</div>
+									<div class="col-md-8">
+										<div class="row">
+											<div class="col-md-4">
+												<button ng-disabled="object.status.isShipped" class="btn" ng-click="deliveryAction('VALIDATED','picked',object.ref)" class="btn" ng-class="{'default':!object.status.isPicked,'green' : object.status.isPicked}"> @(orders:Picked) <i class="fa fa-check-square"></i></button>
+												<span>{{object.status.isPicked | date:'dd/MM/yyyy HH:mm'}}</span>
+											</div>
+											<div class="col-md-4">
+												<button ng-disabled="object.status.isShipped" class="btn" ng-click="deliveryAction('VALIDATED','packed',object.ref)" class="btn" ng-class="{'default':!object.status.isPacked,'green' : object.status.isPacked}"> @(orders:Packed) <i class="fa fa-archive"></i></button>
+												<span>{{object.status.isPacked | date:'dd/MM/yyyy HH:mm'}}</span>
+											</div>
+											<div class="col-md-4">
+												<button ng-disabled="!object.status.isPacked || object.status.isShipped" class="btn" ng-click="deliveryAction('SEND','shipped',object.ref)" class="btn" ng-class="{'default':!object.status.isShipped,'green' : object.status.isShipped}"> @(orders:Shipped) <i class="fa fa-truck"></i></button>
+												<span>{{object.status.isShipped | date:'dd/MM/yyyy HH:mm'}}</span>
 											</div>
 										</div>
 									</div>
 								</div>
-								<div class="portlet light bordered" ng-hide="object.forSales">
-									<div class="row">
-										<div class="col-md-4">
-											<button ng-disabled="object.status.isReceived" class="btn" ng-click="changeStatus('INSTOCK')" class="btn" ng-class="{'default':!object.status.isReceived,'green' : object.status.isReceived}"> @(orders:PutInStock) <i class="fa fa-sign-in"></i></button>
-											<span>{{object.status.isReceived | date:'dd/MM/yyyy HH:mm'}}</span>
-										</div>
+							</div>
+							<div class="portlet light bordered" ng-hide="object.forSales">
+								<div class="row">
+									<div class="col-md-4">
+										<button ng-disabled="object.status.isReceived" class="btn" ng-click="changeStatus('INSTOCK')" class="btn" ng-class="{'default':!object.status.isReceived,'green' : object.status.isReceived}"> @(orders:PutInStock) <i class="fa fa-sign-in"></i></button>
+										<span>{{object.status.isReceived | date:'dd/MM/yyyy HH:mm'}}</span>
 									</div>
 								</div>
 							</div>
 						</div>
-						<div class="row">
-							<div class="col-md-7">
-								<div class="portlet light bordered">
-									<div class="form-group form-md-line-input">
-										<input type="text" class="form-control" id="ref_client" ng-model="object.ref_client">
-										<label for="ref_client">@(orders:RefCustomerOrder)</label>
-									</div>
-									<div class="row">
-										<div class=" col-md-6 col-sm-12">
-											<crm-id label="@(companies:Customer)" ng-if="!object._id" name="societeId" ng-model="object.supplier" entity="object.entity" url="/erp/api/societe/autocomplete" required="true" on-select="updateAddress" placeholder="@(companies:CompanyName)" class="form-group form-md-line-input"></crm-id>
+					</div>
+					<div class="row">
+						<div class="col-md-7">
+							<div class="portlet light bordered">
+								<div class="form-group form-md-line-input">
+									<input type="text" class="form-control" id="ref_client" ng-model="object.ref_client">
+									<label for="ref_client">@(orders:RefCustomerOrder)</label>
+								</div>
+								<div class="row">
+									<div class=" col-md-6 col-sm-12">
+										<crm-id label="@(companies:Customer)" ng-if="!object._id" name="societeId" ng-model="object.supplier" entity="object.entity" url="/erp/api/societe/autocomplete" required="true" on-select="updateAddress" placeholder="@(companies:CompanyName)" class="form-group form-md-line-input"></crm-id>
 
-											<div class="form-group form-md-line-input" ng-if="!object._id">
-												<select class="form-control" id="entity" ng-model="object.entity" ng-change="changeEntity()" ng-options="entity.id as entity.name for entity in entityList"></select>
-												<label for="entity">@(companies:Entity)</label>
-											</div>
+										<div class="form-group form-md-line-input" ng-if="!object._id">
+											<select class="form-control" id="entity" ng-model="object.entity" ng-change="changeEntity()" ng-options="entity.id as entity.name for entity in entityList"></select>
+											<label for="entity">@(companies:Entity)</label>
+										</div>
 
-											<div ng-if="module('bill')" class="form-group form-md-line-input">
-												<input type="text" class="form-control" id="dateOf" date-input ng-model="object.dateOf">
-												<label for="dateOf">@(orders:DateOf)</label>
-											</div>
+										<div ng-if="module('bill')" class="form-group form-md-line-input">
+											<input type="text" class="form-control" id="dateOf" date-input ng-model="object.dateOf">
+											<label for="dateOf">@(orders:DateOf)</label>
+										</div>
 
-											<div ng-if="module('bill')" class="form-group form-md-line-input">
-												<input type="text" class="form-control" id="dateTo" date-input ng-model="object.dateTo">
-												<label for="dateTo">@(orders:DateTo)</label>
-											</div>
+										<div ng-if="module('bill')" class="form-group form-md-line-input">
+											<input type="text" class="form-control" id="dateTo" date-input ng-model="object.dateTo">
+											<label for="dateTo">@(orders:DateTo)</label>
+										</div>
 
-											<div ng-hide="!object._id" ng-if="module('order')" class="form-group form-md-line-input">
-												<div class="form-control form-control-static" id="RefProposal"> <a ui-sref="offer.show({id:object.offer._id})">{{object.offer.ref}}</a> </div>
-												<label for="RefProposal">@(orders:RefProposal)</label>
-											</div>
+										<div ng-hide="!object._id" ng-if="module('order')" class="form-group form-md-line-input">
+											<div class="form-control form-control-static" id="RefProposal"> <a ui-sref="offer.show({id:object.offer._id})">{{object.offer.ref}}</a> </div>
+											<label for="RefProposal">@(orders:RefProposal)</label>
+										</div>
 
-											<div ng-hide="module('offer')" ng-if="object.order" class="form-group form-md-line-input">
-												<div class="form-control form-control-static" id="RefOrderShort"> <a ui-sref="order.show({id:object.order._id, forSales:object.order.forSales?1:0})">{{object.order.ref}}</a></div>
-												<label for="RefOrderShort">@(orders:RefOrderShort)</label>
-											</div>
+										<div ng-hide="module('offer')" ng-if="object.order" class="form-group form-md-line-input">
+											<div class="form-control form-control-static" id="RefOrderShort"> <a ui-sref="order.show({id:object.order._id, forSales:object.order.forSales?1:0})">{{object.order.ref}}</a></div>
+											<label for="RefOrderShort">@(orders:RefOrderShort)</label>
+										</div>
 
-											<div ng-if="object.deliveries.length" class="form-group form-md-line-input">
-												<div ng-repeat="delivery in object.deliveries" class="form-control form-control-static" id="RefDeliveryShort"> <a ui-sref="delivery.show({id:delivery._id, forSales:(delivery.forSales?1:0)})">{{delivery.ref}}</a> <span class="label
+										<div ng-if="object.deliveries.length" class="form-group form-md-line-input">
+											<div ng-repeat="delivery in object.deliveries" class="form-control form-control-static" id="RefDeliveryShort"> <a ui-sref="delivery.show({id:delivery._id, forSales:(delivery.forSales?1:0)})">{{delivery.ref}}</a> <span class="label
                             label-sm ribbon-color-default {{delivery._status.css}}"> {{delivery._status.name}}</span></div>
-												<label for="RefDeliveryShort">@(orders:Deliveries)</label>
-											</div>
+											<label for="RefDeliveryShort">@(orders:Deliveries)</label>
+										</div>
 
-											<div ng-if="object.orders" ng-repeat="order in object.orders" class="form-group form-md-line-input">
-												<div class="form-control form-control-static" id="RefOrderShort"> <a ui-sref="order.show({id:order._id, forSales:order.forSales?1:0})">{{order.ref}}</a> (HT {{order.total_ht | currency}}) </div>
-												<label for="RefOrderShort">@(orders:RefOrderShort)</label>
-											</div>
+										<div ng-if="object.orders" ng-repeat="order in object.orders" class="form-group form-md-line-input">
+											<div class="form-control form-control-static" id="RefOrderShort"> <a ui-sref="order.show({id:order._id, forSales:order.forSales?1:0})">{{order.ref}}</a> (HT {{order.total_ht | currency}}) </div>
+											<label for="RefOrderShort">@(orders:RefOrderShort)</label>
+										</div>
 
 
 
-											<!--<div ng-hide="!object._id" class="form-group form-md-line-input">
+										<!--<div ng-hide="!object._id" class="form-group form-md-line-input">
                                                 <div class="form-control form-control-static" id="Amounts"> {{object.total_ht| currency}} @(HT) </div>
                                                 <label for="Amounts">@(Amounts) @(orders:CommercialProposal)</label>
                                             </div>-->
 
-											<div ng-hide="!object.tracking" class="form-group form-md-line-input">
-												<div class="form-control form-control-static" id="TrackingNumber"> {{object.tracking}} </div>
-												<label for="TrackingNumber">@(orders:TrackingNumber)</label>
-											</div>
-
-											<div class="form-group form-md-line-input">
-												<select class="form-control" id="type" ng-model="object.type" ng-options="s.id as s.label for s in dict.fk_input_reason.values">
-                                                            </select>
-												<label for="type">@(orders:OrderMode)</label>
-											</div>
-											<div class="form-group form-md-line-input">
-												<select class="form-control" id="delivery_mode" ng-model="object.delivery_mode" ng-options="s.id as s.label for s in dict.fk_delivery_mode.values">
-                                                            </select>
-												<label for="delivery_mode">@(orders:RemovingOrder)</label>
-											</div>
-											<div ng-hide="module('bill')" class="form-group form-md-line-input">
-												<input type="text" class="form-control" id="dateLivraison" date-input ng-model="object.datedl">
-												<label ng-hide="module('stockreturn')" for="dateLivraison">@(DeliveryDate)</label>
-												<label ng-show="module('stockreturn')" for="dateLivraison">@(ReturnDate)</label>
-											</div>
-
-											<div ng-hide="module('bill')" class="form-group form-md-line-input">
-												<select class="form-control" id="warehouse" ng-model="object.warehouse._id" ng-options="s._id as s.name for s in $dict.warehouse">
-                                                        </select>
-												<label for="warehouse">@(products:Warehouse)</label>
-											</div>
-
-											<div ng-hide="module('stockreturn')" class="form-group form-md-line-input">
-												<select class="form-control" id="commercial_id" ng-model="object.salesPerson" ng-options="s._id as s.fullName for s in $dict.employees" ng-change="update()">
-                                                        </select>
-												<label ng-show="object.forSales" for="commercial_id">@(commercial:Commercial)</label>
-												<label ng-hide="object.forSales" for="commercial_id">@(commercial:Buyer)</label>
-											</div>
+										<div ng-hide="!object.tracking" class="form-group form-md-line-input">
+											<div class="form-control form-control-static" id="TrackingNumber"> {{object.tracking}} </div>
+											<label for="TrackingNumber">@(orders:TrackingNumber)</label>
 										</div>
 
-										<div class="col-md-6 col-sm-12">
+										<div class="form-group form-md-line-input">
+											<select class="form-control" id="type" ng-model="object.type" ng-options="s.id as s.label for s in dict.fk_input_reason.values">
+                                                            </select>
+											<label for="type">@(orders:OrderMode)</label>
+										</div>
+										<div class="form-group form-md-line-input">
+											<select class="form-control" id="delivery_mode" ng-model="object.delivery_mode" ng-options="s.id as s.label for s in dict.fk_delivery_mode.values">
+                                                            </select>
+											<label for="delivery_mode">@(orders:RemovingOrder)</label>
+										</div>
+										<div ng-hide="module('bill')" class="form-group form-md-line-input">
+											<input type="text" class="form-control" id="dateLivraison" date-input ng-model="object.datedl">
+											<label ng-hide="module('stockreturn')" for="dateLivraison">@(DeliveryDate)</label>
+											<label ng-show="module('stockreturn')" for="dateLivraison">@(ReturnDate)</label>
+										</div>
 
-											<div ng-hide="!object._id" class="form-group form-md-line-input">
-												<div class="form-control form-control-static" id="price_level"> {{object.supplier.salesPurchases.priceList.priceListCode}} </div>
-												<label for="price_level">@(products:PriceLevel)</label>
-											</div>
-
-											<div ng-show="module('bill')" class="form-group form-md-line-input">
-												<input type="text" class="form-control" id="dateInvoice" date-input ng-model="object.datec">
-												<label for="dateInvoice">@(orders:DateInvoice)</label>
-											</div>
-
-											<div ng-show="module('bill')" class="form-group form-md-line-input">
-												<!--<input type="text" class="form-control" id="datereglement" date-input ng-model="object.dater">-->
-												<div class="form-control form-control-static" id="datereglement"> {{object.dater | date:'shortDate'}} </div>
-												<label for="datereglement">@(orders:DatePayment)</label>
-											</div>
-
-											<div ng-hide="module('stockreturn')" class="form-group form-md-line-input">
-												<select class="form-control" id="cond_reglement_code" ng-model="object.cond_reglement_code" ng-options="s.id as s.label for s in dict.fk_payment_term.values" ng-change="update()">
+										<div ng-hide="module('bill')" class="form-group form-md-line-input">
+											<select class="form-control" id="warehouse" ng-model="object.warehouse._id" ng-options="s._id as s.name for s in $dict.warehouse">
                                                         </select>
-												<label for="cond_reglement_code">@(orders:PaymentConditions)</label>
-											</div>
-											<div ng-hide="module('stockreturn')" class="form-group form-md-line-input">
-												<select class="form-control" id="mode_reglement_code" ng-model="object.mode_reglement_code" ng-options="s.id as s.label for s in dict.fk_paiement.values" ng-change="update()">
+											<label for="warehouse">@(products:Warehouse)</label>
+										</div>
+
+										<div ng-hide="module('stockreturn')" class="form-group form-md-line-input">
+											<select class="form-control" id="commercial_id" ng-model="object.salesPerson" ng-options="s._id as s.fullName for s in $dict.employees" ng-change="update()">
+                                                        </select>
+											<label ng-show="object.forSales" for="commercial_id">@(commercial:Commercial)</label>
+											<label ng-hide="object.forSales" for="commercial_id">@(commercial:Buyer)</label>
+										</div>
+									</div>
+
+									<div class="col-md-6 col-sm-12">
+
+										<div ng-hide="!object._id" class="form-group form-md-line-input">
+											<div class="form-control form-control-static" id="price_level"> {{object.supplier.salesPurchases.priceList.priceListCode}} </div>
+											<label for="price_level">@(products:PriceLevel)</label>
+										</div>
+
+										<div ng-show="module('bill')" class="form-group form-md-line-input">
+											<input type="text" class="form-control" id="dateInvoice" date-input ng-model="object.datec">
+											<label for="dateInvoice">@(orders:DateInvoice)</label>
+										</div>
+
+										<div ng-show="module('bill')" class="form-group form-md-line-input">
+											<!--<input type="text" class="form-control" id="datereglement" date-input ng-model="object.dater">-->
+											<div class="form-control form-control-static" id="datereglement"> {{object.dater | date:'shortDate'}} </div>
+											<label for="datereglement">@(orders:DatePayment)</label>
+										</div>
+
+										<div ng-hide="module('stockreturn')" class="form-group form-md-line-input">
+											<select class="form-control" id="cond_reglement_code" ng-model="object.cond_reglement_code" ng-options="s.id as s.label for s in dict.fk_payment_term.values" ng-change="update()">
+                                                        </select>
+											<label for="cond_reglement_code">@(orders:PaymentConditions)</label>
+										</div>
+										<div ng-hide="module('stockreturn')" class="form-group form-md-line-input">
+											<select class="form-control" id="mode_reglement_code" ng-model="object.mode_reglement_code" ng-options="s.id as s.label for s in dict.fk_paiement.values" ng-change="update()">
                                                        </select>
-												<label for="mode_reglement_code">@(orders:PaymentMode)</label>
-											</div>
+											<label for="mode_reglement_code">@(orders:PaymentMode)</label>
+										</div>
 
-											<div ng-hide="module('stockreturn')" class="form-group form-md-line-input">
-												<select class="table-group-action-input form-control" id="bank_reglement" ng-model="object.bank_reglement" ng-options="s._id as s.ref for s in banks"></select>
-												<label for="bank_reglement">@(orders:PaymentBank)</label>
-											</div>
+										<div ng-hide="module('stockreturn')" class="form-group form-md-line-input">
+											<select class="table-group-action-input form-control" id="bank_reglement" ng-model="object.bank_reglement" ng-options="s._id as s.ref for s in banks"></select>
+											<label for="bank_reglement">@(orders:PaymentBank)</label>
+										</div>
 
-											<div ng-if="object.invoices.length" class="form-group form-md-line-input">
-												<div ng-repeat="invoice in object.invoices" class="form-control form-control-static" id="invoice"> <a ui-sref="bill.show({id:invoice._id})">{{invoice.ref}}</a> <span class="label label-sm ribbon-color-default
+										<div ng-if="object.invoices.length" class="form-group form-md-line-input">
+											<div ng-repeat="invoice in object.invoices" class="form-control form-control-static" id="invoice"> <a ui-sref="bill.show({id:invoice._id})">{{invoice.ref}}</a> <span class="label label-sm ribbon-color-default
                             {{invoice._status.css}}"> {{invoice._status.name}}</span> (HT {{invoice.total_ht | currency}})</div>
-												<label for="invoice">@(orders:Bills)</label>
-											</div>
+											<label for="invoice">@(orders:Bills)</label>
 										</div>
 									</div>
 								</div>
-
-								<div ng-include="$dict.module.optionalTemplates[0]"></div>
 							</div>
 
-							<div class="col-md-5">
-								<div ng-hide="module('stockreturn')">
-									<div class="portlet light bordered">
-										<div class="portlet-title">
-											<div class="caption">
-												<i class="fa fa-money"></i>
-												<span class="caption-subject uppercase"> @(orders:BillAddress)</span>
-											</div>
-											<div class="tools">
-												<a href="" ng-class="{collapse:!module('delivery'),expand:module('delivery') }" data-original-title="" title=""> </a>
-											</div>
+							<div ng-include="$dict.module.optionalTemplates[0]"></div>
+						</div>
+
+						<div class="col-md-5">
+							<div ng-hide="module('stockreturn')">
+								<div class="portlet light bordered">
+									<div class="portlet-title">
+										<div class="caption">
+											<i class="fa fa-money"></i>
+											<span class="caption-subject uppercase"> @(orders:BillAddress)</span>
 										</div>
-										<div class="portlet-body" ng-style="!module('delivery') && {'display': 'block'} || module('delivery') && {'display': 'none'} ">
-											<address ng-if="!module('delivery')" ng-model="object.address" mode="withEmail" ng-disabled="!editable"></address>
-											<address ng-if="module('delivery')" ng-model="object.address" mode="simple" ng-disabled="!editable"></address>
+										<div class="tools">
+											<a href="" ng-class="{collapse:!module('delivery'),expand:module('delivery') }" data-original-title="" title=""> </a>
 										</div>
 									</div>
+									<div class="portlet-body" ng-style="!module('delivery') && {'display': 'block'} || module('delivery') && {'display': 'none'} ">
+										<address ng-if="!module('delivery')" ng-model="object.address" mode="withEmail" ng-disabled="!editable"></address>
+										<address ng-if="module('delivery')" ng-model="object.address" mode="simple" ng-disabled="!editable"></address>
+									</div>
 								</div>
+							</div>
 
-								<div ng-hide="module('stockreturn') || module('bill')" ng-if="object.supplier._id">
-									<div class="portlet light bordered">
-										<div class="portlet-title">
-											<div class="caption">
-												<i class="fa fa-truck"></i>
-												<span class="caption-subject uppercase"> @(orders:DeliveryAddress)</span>
-											</div>
-											<div class="tools">
-												<a href="" ng-class="{collapse:module('delivery'),expand:!module('delivery') }" data-original-title="" title=""> </a>
-											</div>
+							<div ng-hide="module('stockreturn') || module('bill')" ng-if="object.supplier._id">
+								<div class="portlet light bordered">
+									<div class="portlet-title">
+										<div class="caption">
+											<i class="fa fa-truck"></i>
+											<span class="caption-subject uppercase"> @(orders:DeliveryAddress)</span>
 										</div>
-										<div class="portlet-body" ng-style="module('delivery') && {'display': 'block'} || !module('delivery') && {'display': 'none'} ">
-											<address ng-if="module('delivery')" ng-model="object.shippingAddress" ng-disabled="!editable" mode='shipping' supplier="object.supplier._id"></address>
-											<address ng-if="!module('delivery')" ng-model="object.shippingAddress" ng-disabled="!editable" mode='shipping' supplier="object.supplier._id"></address>
+										<div class="tools">
+											<a href="" ng-class="{collapse:module('delivery'),expand:!module('delivery') }" data-original-title="" title=""> </a>
 										</div>
+									</div>
+									<div class="portlet-body" ng-style="module('delivery') && {'display': 'block'} || !module('delivery') && {'display': 'none'} ">
+										<address ng-if="module('delivery')" ng-model="object.shippingAddress" ng-disabled="!editable" mode='shipping' supplier="object.supplier._id"></address>
+										<address ng-if="!module('delivery')" ng-model="object.shippingAddress" ng-disabled="!editable" mode='shipping' supplier="object.supplier._id"></address>
 									</div>
 								</div>
 							</div>
@@ -300,8 +298,6 @@
 		</div>
 	</div>
 </div>
-</div>
-</div>
 
 <!-- __ORDER__ -->
 <div ng-hide="!object._id || object._id !==object.order._id" class="row">
@@ -321,7 +317,7 @@
 <div ng-if="object._id && module('delivery') && object.forSales" class="row">
 	<div class="col-md-12">
 		<product-lines ng-model="object.orderRows" title="'@(orders:PreparationNote)'" for-sales="object.forSales" warehouse="object.warehouse" ng-disabled="editable" price-list="object.supplier.salesPurchases.priceList._id" ng-template="/templates/core/productDeliveryLine.html"
-		 ng-change="update()"></product-lines>
+		  ng-change="update()"></product-lines>
 	</div>
 </div>
 
@@ -329,14 +325,14 @@
 <div ng-if="object._id && module('delivery') && !object.forSales" class="row">
 	<div class="col-md-12">
 		<product-lines ng-model="object.orderRows" title="'@(orders:ReceptionNotes)'" for-sales="object.forSales" warehouse="object.warehouse" ng-disabled="editable" price-list="object.supplier.salesPurchases.priceList._id" ng-template="/templates/core/productDeliverySupplierLine.html"
-		 ng-change="update()"></product-lines>
+		  ng-change="update()"></product-lines>
 	</div>
 </div>
 
 <!-- __STOCKRETURN__ -->
 <div ng-if="object._id && module('stockreturn')" class="row">
 	<div class="col-md-12">
-		<product-lines ng-model="object.orderRows" title="'@(products:Product) @(orders:StockReturn)'" ng-disabled="editable" price-list="object.supplier.salesPurchases.priceList._id" ng-template="/templates/core/productStockreturnLine.html" ng-change="update()"></product-lines>
+		<product-lines ng-model="object.orderRows" title="'@(products:Product) @(orders:StockReturn)'" ng-disabled="editable" warehouse="object.warehouse" ng-template="/templates/core/productStockreturnLine.html" ng-change="update()"></product-lines>
 	</div>
 </div>
 

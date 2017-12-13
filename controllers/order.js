@@ -130,8 +130,8 @@ exports.install = function(options) {
 		F.route('/erp/api/order/file/{Id}', object.createFile, ['post', 'authorize']);
 		F.route('/erp/api/order/file/{Id}/{fileName}', object.getFile, ['authorize']);
 		F.route('/erp/api/order/file/{Id}/{fileName}', object.deleteFile, ['delete', 'authorize']);
-		F.route('/erp/api/order/pdf/{orderId}', object.generatePdf, ['put', 'authorize']);
-		F.route('/erp/api/offer/pdf/{orderId}', object.generatePdf, ['put', 'authorize']);
+		F.route('/erp/api/order/pdf/{orderId}', object.generatePdf, ['put', 'authorize',15000]);
+		F.route('/erp/api/offer/pdf/{orderId}', object.generatePdf, ['put', 'authorize',15000]);
 		F.route('/erp/api/order/download/{:id}', object.download);
 
 		//F.route('/erp/api/offer/pdf/{orderId}', object.pdf, ['authorize']);
@@ -1906,7 +1906,13 @@ Object.prototype = {
 										}
 								});
 
-						return self.json({});
+								var doc = {};
+								doc.successNotify = {
+										title: "Success",
+										message: "PDF Généré"
+								};
+
+						return self.json(doc);
 				});
 		},
 		download: function(id) {

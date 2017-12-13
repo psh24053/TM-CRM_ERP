@@ -382,18 +382,20 @@ Object.prototype = {
 												for (let i = 0, len = self.body.orderRows.length; i < len; i++) {
 
 														//Refresh qty total form locations
-														if (!self.body.forSales) {
-																if (self.body.orderRows[i].locationsReceived.length)
+														//if (!self.body.forSales) {
+																if (self.body.orderRows[i].locationsReceived && self.body.orderRows[i].locationsReceived.length)
 																		self.body.orderRows[i].qty = _.sum(self.body.orderRows[i].locationsReceived, function(object) {
 																				return object.qty;
 																		});
-																else
-																		self.body.orderRows[i].qty = 0;
-														}
+																if(!self.body.orderRows[i].qty)
+																	self.body.orderRows[i].qty = 0;
+														//}
 
 
-														if (!self.body.orderRows[i].qty || self.body.orderRows[i].isDeleted)
+														if (!self.body.orderRows[i].qty || self.body.orderRows[i].isDeleted){
+															self.body.orderRows[i].locationsReceived =[];
 																continue;
+															}
 
 														self.body.weight += self.body.orderRows[i].qty * self.body.orderRows[i].product.weight;
 												}
@@ -1199,7 +1201,12 @@ Object.prototype = {
 										}
 								});
 
-						return self.json({});
+								var doc = {};
+								doc.successNotify = {
+										title: "Success",
+										message: "PDF Généré"
+								};
+						return self.json(doc);
 				});
 		},
 		pdf: function(ref, self) {

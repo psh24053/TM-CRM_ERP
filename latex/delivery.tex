@@ -1,10 +1,26 @@
+\documentclass[a4paper, oneside, 10pt, french]{article}
+
+\usepackage[a4paper]{geometry}
+\geometry{top=1.5cm, bottom=1cm, left=1.5cm, right=1.5cm,foot=.2cm,head=2cm,headsep=.5cm,includefoot}
+
+\usepackage{tm_article}
+\usepackage{tabularx, longtable, multirow, rotating}
+
+\definecolor{violet}{rgb}{0.0,0.0,0.0}
+\definecolor{bleu}{rgb}{0.01,0.28,0.58}
+\newcommand{\vhline}{\arrayrulecolor{violet}\hline\arrayrulecolor{black}}
+\newcommand{\ghline}{\arrayrulecolor{gray}\hline\arrayrulecolor{black}}
+\newcommand{\bhline}{\arrayrulecolor{bleu}\hline\arrayrulecolor{black}}
+\makeatletter
+\renewcommand{\section}{\@startsection {section}{1}{\z@}%
+             {-0ex \@plus -1ex \@minus -.2ex}%
+             {0.01ex \@plus.1ex}%
+             {\footnotesize\sffamily}}
+\makeatother
+
 \newcommand{\FOOT}{--FOOT--}
 
-
-
-%%ligne de tableau avec \\
-\newcommand{\specialcell}[2][c]{
-	\parbox[#1]{8.3cm}{#2}}
+\begin{document}
 
 \begin{tabular}{p{9cm} p{8cm}}
     \vspace{0pt} 
@@ -13,10 +29,10 @@
     \vspace{0pt}
    \raggedleft
 	%\begin{flushright}
-	\textcolor{violet}{\textsc{\Large Bon de livraison --NUM--}}\\
-	Date d'exp\'edition : --DATEEXP--\\
-    {\small Date de commande : \textbf{--DATEC--}\\
-	Ref. commande : --ORDER--\\}~\\
+	\textcolor{violet}{\textsc{\Large Bon de livraison  \directlua{tex.print(json.ref.value)}}}\\
+	Date d'exp\'edition :  \directlua{tex.print(json.dateexp.value)}\\
+    {\small Date de commande : \textbf{ \directlua{tex.print(json.datec.value)}\\
+	Ref. commande : \directlua{tex.print(json.order.value)}\\}~\\
 \end{tabular}
 
 %\vspace{-0.7cm}
@@ -32,72 +48,44 @@
 {\small Destinataire :}
 
 \begin{fminipage}
-\textbf{\large --DESTINATAIRE.NAME--}\\
---DESTINATAIRE.ADDRESS--\\
-\textsc{--DESTINATAIRE.ZIP-- --DESTINATAIRE.TOWN--}\\
+\textbf{\large \directlua{tex.print(json.to.value.address.name)}}\\
+\directlua{tex.print(json.to.value.address.street)}\\
+\textsc{\directlua{tex.print(json.to.value.address.zip)} \directlua{tex.print(json.to.value.address.city)}}\\
 \begin{minipage}{\textwidth}
 \flushright
-{\tiny --CODECLIENT--}
+{\tiny \directlua{tex.print(json.to.value.code_client)}}
 \end{minipage}
 \end{fminipage}
 \end{minipage}
 
 \begin{minipage}[t]{0.60\textwidth}
 {\small \it Informations :}\\
---NOTES-- \\
+\directlua{tex.print(json.notes.value)} \\
 \end{minipage}
 \hspace{1cm}
 \begin{minipage}[t]{0.32\textwidth}
 \begin{flushright}
-{\it Ref. commande client : \textbf{--REFCLIENT--}}\\
+{\it Ref. commande client : \textbf{ \directlua{tex.print(json.ref_client.value)}}}\\
 \vspace{1em}
-{\it Livraison : --DELIVERYMODE--}\\
-{\it Date prévisionnelle : \textbf{--DATEEXP--}}
+{\it Livraison : \directlua{tex.print(json.delivery_mode.value)}}\\
+{\it Date prévisionnelle : \textbf{\directlua{tex.print(json.dateexp.value)}}}
 \vspace{1em}
 \end{flushright}
 \end{minipage}
 
-\setlength\LTleft{0pt}
-\setlength\LTright{0pt}
-\setlength\LTpre{5pt}
-\setlength\LTpost{0pt}
-\begin{longtable}{|r|r|p{8.5cm}@{\extracolsep{1mm plus 1fil}}|r|r|}
-\hline
-\multicolumn{1}{|c}{N} &
-\multicolumn{1}{c}{R\'ef} &
-\multicolumn{1}{c}{D\'esignation} &
-\multicolumn{1}{c}{Qté cmdée} &
-\multicolumn{1}{c|}{Qté dans le colis} \\
-\hline \hline
-\endfirsthead
-
-\hline
-\multicolumn{5}{|l|}{\small\sl suite de la page pr\'ec\'edente}\\
-\hline \multicolumn{1}{|c}{R\'ef} &
-\multicolumn{1}{c}{D\'esignation} &
-\multicolumn{1}{c}{Qté cmdée} &
-\multicolumn{1}{c|}{Qté dans le colis} \\ \hline \hline
-\endhead
-
-\hline \multicolumn{5}{|r|}{{\small\sl suite sur la prochaine page}} \\ \hline
-\endfoot
-
-\hline
-\endlastfoot
-
---TABULAR--
-
-\end{longtable}
+\input{lines_delivery}
 
 \begin{minipage}[t]{0.50\textwidth}
 \begin{fminipage}
 \begin{tabular}{p{4cm} r l}
---TOTALQTY--
+\directlua{printTotal()}
 \end{tabular}
 \end{fminipage}
 \end{minipage}
 \begin{minipage}[t]{0.50\textwidth}
-\centerline{\EANisbn[SC3,ISBN=--BARCODE--]}
+%\centerline{\EANisbn[SC3,ISBN=4-170-005151-02-8}]}
 \end{minipage}
 
 Marchandise control\'ee
+
+\end{document}
