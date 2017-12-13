@@ -730,8 +730,8 @@ customerSchema.statics.query = function(options, callback) {
 										createdAt: 1,
 										updatedAt: 1,
 										lastOrder: 1,
-										phones : 1,
-										emails : 1,
+										phones: 1,
+										emails: 1,
 										type: 1
 								}
 						},
@@ -765,8 +765,8 @@ customerSchema.statics.query = function(options, callback) {
 										createdAt: 1,
 										updatedAt: 1,
 										lastOrder: 1,
-										phones : 1,
-										emails : 1,
+										phones: 1,
+										emails: 1,
 										type: 1
 								},
 						},
@@ -793,8 +793,8 @@ customerSchema.statics.query = function(options, callback) {
 										createdAt: 1,
 										updatedAt: 1,
 										lastOrder: 1,
-										phones : 1,
-										emails : 1,
+										phones: 1,
+										emails: 1,
 										type: 1
 								},
 						},
@@ -829,8 +829,8 @@ customerSchema.statics.query = function(options, callback) {
 										updatedAt: '$root.updatedAt',
 										type: '$root.type',
 										lastOrder: '$root.lastOrder',
-										phones : '$root.phones',
-										emails : '$root.emails',
+										phones: '$root.phones',
+										emails: '$root.emails',
 										total: 1,
 										totalAll: {
 												count: "$total",
@@ -879,8 +879,8 @@ customerSchema.statics.query = function(options, callback) {
 										createdAt: '$root.createdAt',
 										updatedAt: '$root.updatedAt',
 										lastOrder: '$root.lastOrder',
-										phones : '$root.phones',
-										emails : '$root.emails',
+										phones: '$root.phones',
+										emails: '$root.emails',
 										type: '$root.type',
 										total: "$root.total",
 										totalAll: {
@@ -901,8 +901,8 @@ customerSchema.statics.query = function(options, callback) {
 										createdAt: 1,
 										updatedAt: 1,
 										lastOrder: 1,
-										phones : 1,
-										emails : 1,
+										phones: 1,
+										emails: 1,
 										type: 1,
 										total: 1,
 										totalAll: 1

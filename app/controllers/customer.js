@@ -138,10 +138,10 @@ MetronicApp.controller('SocieteController', ['$scope', '$rootScope', '$http', '$
 						// set default layout mode
 						$rootScope.settings.layout.pageBodySolid = false;
 
-						if (typeof superCache.get("SocieteController_"+$scope.forSales) !== "undefined") {
-								$scope.page = superCache.get("SocieteController_"+$scope.forSales).page;
-								$scope.search = superCache.get("SocieteController_"+$scope.forSales).search;
-								$scope.sort = superCache.get("SocieteController_"+$scope.forSales).sort;
+						if (typeof superCache.get("SocieteController_" + $scope.forSales) !== "undefined") {
+								$scope.page = superCache.get("SocieteController_" + $scope.forSales).page;
+								$scope.search = superCache.get("SocieteController_" + $scope.forSales).search;
+								$scope.sort = superCache.get("SocieteController_" + $scope.forSales).sort;
 						}
 
 						var dict = ["fk_stcomm", "fk_typent", "fk_effectif", "fk_forme_juridique", "fk_payment_term", "fk_paiement", "fk_civilite", "fk_user_status"];
@@ -369,7 +369,7 @@ MetronicApp.controller('SocieteController', ['$scope', '$rootScope', '$http', '$
 								$scope.checkCodeClient();
 
 								if ($rootScope.$stateParams.id && $rootScope.$state.current.name === "societe.show")
-												return $rootScope.$state.go('societe.show.company');
+										return $rootScope.$state.go('societe.show.company');
 
 								//console.log(societe);
 

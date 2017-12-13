@@ -27,7 +27,7 @@ MetronicApp.config(function($stateProvider, $urlRouterProvider) {
 
 		// Company
 		$stateProvider
-		.state('societe', {
+				.state('societe', {
 						url: "/societe",
 						abstract: true,
 						templateUrl: "/views/company/index.html"
