@@ -53,6 +53,10 @@ let modelPdfSchema = new mongoose.Schema({
 				type: String,
 				default: ''
 		}, // Used at the end of the filename in html _id + filename + .pdf
+		template: {
+				type: String,
+				default: 'lines'
+		}, //For includes lines templates
 		latex: String, //latex main file in latex directory
 		enabled: {
 				type: Boolean,

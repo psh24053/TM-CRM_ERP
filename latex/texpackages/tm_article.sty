@@ -78,3 +78,17 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \renewcommand{\thesection}{\arabic{section}}
+
+\begin{luacode*}
+-- @json file
+function getjsonfile (file)
+    local f, s
+      f = io.open(file, 'r')
+        s = f:read('*a')
+        f.close()
+        return s
+ end 
+ 
+json = utilities.json.tolua(getjsonfile('data.json'))
+
+\end{luacode*}

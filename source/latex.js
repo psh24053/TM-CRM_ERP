@@ -165,96 +165,23 @@ Template.prototype.processContent = function(stream) {
 
 Template.prototype.applyHandlers = function() {
 		var handlers = this.handlers;
+		const self = this;
+		var json = {};
 
 		function apply(handler, key, callback) {
 				var value = "";
-				var fixedWidthString = require('fixed-width-string');
 
 				switch (handler.type) {
-						case "string":
-								if (handler.value) {
-										value = handler.value.toString();
-										//console.log(handler);
-										value = value.replace(/_/gi, "\\_")
-												.replace(/%/gi, "\\%")
-												.replace(/&/gi, "\\&")
-												.replace(/\n/g, " ");
-								}
-								break;
-						case "area":
-								if (handler.value) {
-										value = handler.value;
-										value = value.replace(/_/gi, "\\_")
-												.replace(/%/gi, "\\%")
-												.replace(/&/gi, "\\&")
-												.replace(/\n/g, "\\\\");
-								}
-								break;
-						case "number":
-								// null value -> not 0
-								if (!handler.value) {
-										value = "";
-										break;
-								}
 
-								if (handler.value && typeof handler.value === "object") {
-										value = accounting.formatNumber(handler.value.value, {
-												decimal: ",",
-												thousand: " ",
-												precision: (handler.precision !== null ? handler.precision : 2)
-										});
-										if (handler.value.unit)
-												value += " " + handler.value.unit;
-								} else
-										value = accounting.formatNumber(handler.value, {
-												decimal: ",",
-												thousand: " ",
-												precision: (handler.precision !== null ? handler.precision : 2)
-										});
-								break;
-						case "euro":
-								if (!handler.value) {
-										value = "";
-										break;
-								}
-								value = accounting.formatMoney(handler.value, {
-										symbol: "€",
-										format: "%v %s",
-										decimal: ",",
-										thousand: " ",
-										precision: 2
-								});
-								break;
-						case "percent":
-								value = accounting.formatNumber(handler.value, {
-										format: "%v %s",
-										decimal: ",",
-										thousand: " ",
-										precision: (handler.precision !== null ? handler.precision : 2)
-								});
-								value = value.toString() + " \\%";
-								break;
 						case "date":
-								if (handler.value) {
+								if (handler.value)
 										value = moment(handler.value).format(handler.format);
-								}
-								break;
-						case "cent":
-								break;
-						case "ean13":
-								if (typeof handler.value == 'undefined')
-										handler.value = 0;
 
-								if (!handler.value)
-										handler.value = 0;
-
-								value = fixedWidthString(handler.value, 13, {
-										padding: '0',
-										align: 'right'
-								});
 								break;
+
 						default:
-								return callback("Handler not found : " + handler.type + " (" + handler.id + ")");
+							if(handler.value)
+								value = handler.value;
 				}
 
 				return callback(null, key, value);
@@ -263,6 +190,9 @@ Template.prototype.applyHandlers = function() {
 
 		return function(content, done) {
 				//console.log(content);
+
+				content = content.replace(new RegExp("--LINES--", "g"), null || "lines"); // TODO need replace null !
+
 				async.eachSeries(
 						handlers,
 						function(handler, next) {
@@ -270,20 +200,23 @@ Template.prototype.applyHandlers = function() {
 								//console.log(handler);
 
 								if (_.isArray(handler.value)) {
-										if (!handler.value[0] || !handler.value[0].keys)
-												return next("Array(0) row keys is missing " + handler.id);
-										var columns = handler.value[0].keys;
+										//if (!handler.value[0] || !handler.value[0].keys)
+										//		return next("Array(0) row keys is missing " + handler.id);
+										//var columns = handler.value[0].keys;
+										json[handler.id] = handler.value;
+										return next();
 
-										var output = "";
-
-										async.eachSeries(handler.value, function(tabline, cb) {
+										/*async.eachSeries(handler.value, function(tabline, cb) {
 												if (tabline.keys)
 														return cb();
+
+														var output = {};
 
 												// Add horizontal line
 												//console.log(tabline);
 												if (tabline.hline) {
-														output += "\\hline\n";
+														//output += "\\hline\n";
+														output.isHline = true;
 														return cb();
 												}
 
@@ -302,17 +235,22 @@ Template.prototype.applyHandlers = function() {
 																if (err)
 																		return next(err);
 
-																if (tabline.italic)
-																		output += '\\textit{' + value + '}';
-																else
-																		output += value;
+																//if (tabline.italic)
+																//		output += '\\textit{' + value + '}';
+																//else
+																		output[columns[i].key] = {
+																			value : value,
+																			isItalic : tabline.italic
+																		};
 
 																//console.log(key);
 																if (key === columns.length - 1) { // end line
-																		output += "\\tabularnewline\n";
+																	json[handler.id].push(output);
+																//		output += "\\tabularnewline\n";
 																		cb();
-																} else
-																		output += "&"; //next column
+																	}
+																//} else
+																//		output += "&"; //next column
 
 														});
 												}
@@ -320,105 +258,20 @@ Template.prototype.applyHandlers = function() {
 										}, function() {
 												//console.log(output);
 												let model = "";
-												switch (handler.template) {
-														case 'tablePriceLines':
-																model = `%%ligne de tableau avec \\
-														\\newcommand{\\specialcell}[2][c]{
-															\\parbox[#1]{7.7cm}{#2}}
+												//output = model.replace(new RegExp("--DATA--", "g"), output);
 
-														\\setlength\\LTleft{0pt}
-												\\setlength\\LTright{0pt}
-												\\setlength\\LTpre{5pt}
-												\\setlength\\LTpost{0pt}
-												\\begin{longtable}{|r|r|p{8cm}@{\\extracolsep{1mm plus 1fil}}|c|r|r|r|}
-												\\hline
-												\\multicolumn{1}{|c}{N} &
-												\\multicolumn{1}{c}{R\\'ef} &
-												\\multicolumn{1}{c}{D\\'esignation} &
-												Qt\\'e &
-												PU &
-												Total HT &
-												\\multicolumn{1}{c|}{TVA} \\\\
-												\\hline \\hline
-												\\endfirsthead
-
-												\\hline
-												\\multicolumn{7}{|l|}{\\small\\sl suite de la page pr\\'ec\\'edente}\\\\
-												\\hline \\multicolumn{1}{|c}{R\\'ef} &
-												\\multicolumn{1}{c}{D\\'esignation} &
-												Qt\\'e &
-												PU &
-												Total HT &
-												\\multicolumn{1}{c|}{TVA} \\\\ \\hline \\hline
-												\\endhead
-
-												\\hline \\multicolumn{7}{|r|}{{\\small\\sl suite sur la prochaine page}} \\\\ \\hline
-												\\endfoot
-
-												\\hline
-												\\endlastfoot
-												--DATA--
-
-												\\end{longtable}
-												`;
-
-																output = model.replace(new RegExp("--DATA--", "g"), output);
-																break;
-														case 'tablePriceDiscountLines':
-																model = `%%ligne de tableau avec \\
-\\newcommand{\\specialcell}[2][c]{
-\\parbox[#1]{5.8cm}{#2}}
-
-\\setlength\\LTleft{0pt}
-\\setlength\\LTright{0pt}
-\\setlength\\LTpre{5pt}
-\\setlength\\LTpost{0pt}
-\\begin{longtable}{|r|r|p{6.0cm}@{\\extracolsep{1mm plus 1fil}}|c|r|r|r|r|}
-\\hline
-\\multicolumn{1}{|c}{N} &
-\\multicolumn{1}{c}{R\\'ef} &
-\\multicolumn{1}{c}{D\\'esignation} &
-Qt\\'e &
-PU &
-Remise &
-Total HT &
-\\multicolumn{1}{c|}{TVA} \\\\
-\\hline \\hline
-\\endfirsthead
-
-\\hline
-\\multicolumn{8}{|l|}{\\small\\sl suite de la page pr\\'ec\\'edente}\\\\
-\\hline \\multicolumn{1}{|c}{R\\'ef} &
-\\multicolumn{1}{c}{D\\'esignation} &
-Qt\\'e &
-PU &
-Remise &
-Total HT &
-\\multicolumn{1}{c|}{TVA} \\\\ \\hline \\hline
-\\endhead
-
-\\hline \\multicolumn{8}{|r|}{{\\small\\sl suite sur la prochaine page}} \\\\ \\hline
-\\endfoot
-
-\\hline
-\\endlastfoot
-
---DATA--
-
-\\end{longtable}`;
-																output = model.replace(new RegExp("--DATA--", "g"), output);
-																break;
-												}
-
-												content = content.replace(new RegExp("--" + handler.id + "--", "g"), output);
 												next();
-										});
+										});*/
 								} else {
 										apply(handler, handler.id, function(err, key, value) {
 												if (err)
 														return next(err);
 
-												content = content.replace(new RegExp("--" + key + "--", "g"), value);
+												json[key] = {
+														value: value
+												};
+
+												//content = content.replace(new RegExp("--" + key + "--", "g"), value);
 												next();
 										})
 								}
@@ -426,6 +279,41 @@ Total HT &
 						function(err) {
 								if (err)
 										return done(err);
+
+								function deepMap(obj, cb) {
+
+										Object.keys(obj).forEach(function(k) {
+												var val;
+
+												if (obj[k] !== null && typeof obj[k] === 'object') {
+														val = deepMap(obj[k], cb);
+												} else {
+														val = cb(obj[k], k);
+												}
+
+												obj[k] = val;
+										});
+
+										return obj;
+								}
+
+								json = deepMap(json, function(v, k) {
+										if (typeof v !== "string")
+												return v;
+
+										return v.replace(/_/gi, "\\_")
+												.replace(/%/gi, "\\%")
+												.replace(/&/gi, "\\&")
+												.replace(/\n/g, " ");
+								});
+
+								self.on('json', function(dirPath) {
+										fs.writeFile(path.join(dirPath, "data.json"), JSON.stringify(json), function(err) {
+												if (err)
+														emit('error', err);
+										});
+								});
+
 								done(null, content);
 						}
 				);
@@ -441,8 +329,11 @@ Total HT &
 Template.prototype.applyHeadFoot = function() {
 		var entity = this.entity;
 		var cgv = this.options.cgv;
-		var emit = this.emit.bind(this);
-		var EntityModel = MODEL('entity').Schema;
+		const emit = this.emit.bind(this);
+		const EntityModel = MODEL('entity').Schema;
+
+		
+
 		return function(tex, done) {
 				Dict.dict({
 						dictName: "fk_forme_juridique",
@@ -515,6 +406,7 @@ Template.prototype.finalize = function(done) {
 		this.on('finalized', done);
 		return this;
 };
+
 /**
  * Register a handler on the 'finalized' event. This start latex compilation
  */
@@ -531,8 +423,9 @@ Template.prototype.compile = function(layout, inputTex) {
 				var dirPath = F.path.temp() + "pdfcreator-" + shortId.generate();
 
 				fs.mkdirSync(dirPath);
+				emit('json', dirPath);
 
-				var inputPath = path.join(dirPath, "texfile.tex");
+				var inputPath = path.join(dirPath, "main.tex");
 				var compilePath = path.join(dirPath, layout + ".tex");
 				var afterCompile = function(err) {
 						// store the logs for the user here
@@ -566,8 +459,8 @@ Template.prototype.compile = function(layout, inputTex) {
 								}
 
 								// compile the document (or at least try)
-								exec("TEXINPUTS=" + dirPath + ":$TEXINPUTS pdflatex -interaction=nonstopmode -output-directory=" + dirPath + " " + compilePath + " > /dev/null 2>&1", function() {
-										exec("TEXINPUTS=" + dirPath + ":$TEXINPUTS pdflatex -interaction=nonstopmode -output-directory=" + dirPath + " " + compilePath + " > /dev/null 2>&1", afterCompile);
+								exec("cd " + dirPath + " && TEXINPUTS=" + dirPath + ":$TEXINPUTS lualatex -interaction=nonstopmode -output-directory=" + dirPath + " " + compilePath + " > /dev/null 2>&1", function() {
+										exec("cd " + dirPath + " && TEXINPUTS=" + dirPath + ":$TEXINPUTS lualatex -interaction=nonstopmode -output-directory=" + dirPath + " " + compilePath + " > /dev/null 2>&1", afterCompile);
 								});
 						});
 				});
@@ -601,6 +494,9 @@ function parse(stream) {
  * @returns {undefined}
  */
 function deleteFolderRecursive(path) {
+
+		return;
+
 		var files = [];
 		if (fs.existsSync(path)) {
 				files = fs.readdirSync(path);

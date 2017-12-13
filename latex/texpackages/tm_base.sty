@@ -1,6 +1,8 @@
 \NeedsTeXFormat{LaTeX2e}[1995/12/01]
 
-\usepackage[utf8]{inputenc}
+\usepackage[utf8]{luainputenc}
+\usepackage{luacode}
+\usepackage{luatextra}
 %\usepackage[cyr]{aeguill}
 \usepackage[sfmath]{kpfonts} %% sfmath option only to make math in sans serif. Probablye only for use when base font is sans serif.
 \renewcommand*\familydefault{\sfdefault} %% Only if the base font of the document is to be sans serif
@@ -9,20 +11,20 @@
 \usepackage{babel}
 \usepackage[official]{eurosym}
 
-\usepackage{supertabular}
-\usepackage{array}
+%\usepackage{supertabular}
+%\usepackage{array}
 \usepackage{pdfpages}
 \usepackage{multicol}
 
 %\usepackage{wasysym}
-\usepackage{pifont}
+%\usepackage{pifont}
 
-\usepackage{tikz}
+%\usepackage{tikz}
 
 \usepackage{booktabs}
-\usepackage{tabularx}
-\usepackage{colortbl}
-\usepackage{xxcolor}
+%\usepackage{tabularx}
+%\usepackage{colortbl}
+%\usepackage{xxcolor}
 \usepackage{lastpage}
 \usepackage{verbatim}
 
@@ -36,24 +38,23 @@
 %\geometry{top=2cm, bottom=1cm, left=1.5cm, right=1.5cm,foot=1.5cm,head=2cm,headsep=.5cm,includefoot}
 
 
-
-\usetikzlibrary{shapes,decorations,shadows}
-\usetikzlibrary{decorations.pathmorphing}
-\usetikzlibrary{decorations.shapes}
-\usetikzlibrary{fadings}
-\usetikzlibrary{patterns}
-\usetikzlibrary{calc}
-\usetikzlibrary{decorations.text}
-\usetikzlibrary{decorations.footprints}
-\usetikzlibrary{decorations.fractals}
-\usetikzlibrary{shapes.gates.logic.IEC}
-\usetikzlibrary{shapes.gates.logic.US}
-\usetikzlibrary{fit,chains}
-\usetikzlibrary{positioning}
-\usepgflibrary{shapes}
-\usetikzlibrary{scopes}
-\usetikzlibrary{arrows,shadows,petri,automata}
-\usetikzlibrary{trees,snakes}
+%\usetikzlibrary{shapes,decorations,shadows}
+%\usetikzlibrary{decorations.pathmorphing}
+%\usetikzlibrary{decorations.shapes}
+%\usetikzlibrary{fadings}
+%\usetikzlibrary{patterns}
+%\usetikzlibrary{calc}
+%\usetikzlibrary{decorations.text}
+%\usetikzlibrary{decorations.footprints}
+%\usetikzlibrary{decorations.fractals}
+%\usetikzlibrary{shapes.gates.logic.IEC}
+%\usetikzlibrary{shapes.gates.logic.US}
+%\usetikzlibrary{fit,chains}
+%\usetikzlibrary{positioning}
+%\usepgflibrary{shapes}
+%\usetikzlibrary{scopes}
+%\usetikzlibrary{arrows,shadows,petri,automata}
+%\usetikzlibrary{trees,snakes}
 
 \newif\ifPDF
 \ifx\pdfoutput\undefined\PDFfalse
@@ -183,75 +184,75 @@
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\tikzset{leader/.style = {shape          = circle,
-                                 ball color     = ToManage_Blue,
-                                 text           = black,
-                                 inner sep      = 2pt,
-                                 outer sep      = 0pt,
-                                 %node distance	= 7em,
-                                 minimum size   = 20 pt,
-                                 text width=25pt,
-                                 text centered, font={\tiny}}}
-\tikzset{member/.style =   {shape          = circle,
-                                 ball color     = ToManage_Yellow,
-                                 text           = black,
-                                 inner sep      = 2pt,
-                                 outer sep      = 0pt,
-                                 %node distance	= 7em,
-                                 text width=25pt,
-                                 minimum size   = 20 pt,
-  				text centered, font={\tiny}}}
+%\tikzset{leader/.style = {shape          = circle,
+%                                 ball color     = ToManage_Blue,
+%                                 text           = black,
+%                                 inner sep      = 2pt,
+%                                 outer sep      = 0pt,
+%                                 %node distance	= 7em,
+%                                 minimum size   = 20 pt,
+%                                 text width=25pt,
+%                                 text centered, font={\tiny}}}
+%\tikzset{member/.style =   {shape          = circle,
+%                                 ball color     = ToManage_Yellow,
+%                                 text           = black,
+%                                 inner sep      = 2pt,
+%                                 outer sep      = 0pt,
+%                                 %node distance	= 7em,
+%                                 text width=25pt,
+%                                 minimum size   = 20 pt,
+%  				text centered, font={\tiny}}}
   											
-\tikzset{rebelle/.style =   {shape          = circle,
-                                 ball color     = ToManage_Red,
-                                 text           = white,
-                                 inner sep      = 2pt,
-                                 outer sep      = 0pt,
-                                 %node distance	= 7em,
-                                 text width=25pt,
-                                 minimum size   = 20 pt,
-  				text centered, font={\tiny}}}
+%\tikzset{rebelle/.style =   {shape          = circle,
+%                                 ball color     = ToManage_Red,
+%                                 text           = white,
+%                                 inner sep      = 2pt,
+%                                 outer sep      = 0pt,
+%                                 %node distance	= 7em,
+%                                 text width=25pt,
+%                                 minimum size   = 20 pt,
+%  				text centered, font={\tiny}}}
   				
-\tikzset{comment/.style =   {font={\tiny\it}}}
+%\tikzset{comment/.style =   {font={\tiny\it}}}
 
-\tikzstyle{level 1}=[sibling angle=30]
-\tikzstyle{level 2}=[sibling angle=30]
-\tikzstyle{level 3}=[sibling angle=30]
-\tikzstyle{edge from parent}=[snake=expanding waves,segment length=1mm,segment angle=7,draw,black]
+%\tikzstyle{level 1}=[sibling angle=30]
+%\tikzstyle{level 2}=[sibling angle=30]
+%\tikzstyle{level 3}=[sibling angle=30]
+%\tikzstyle{edge from parent}=[snake=expanding waves,segment length=1mm,segment angle=7,draw,black]
 
 
 %%%% Bulles %
 
-  \tikzset{VertexStyle/.style = {shape          = circle,
-                                 ball color     = ToManage_Blue,
-                                 text           = black,
-                                 inner sep      = 2pt,
-                                 outer sep      = 0pt,
-                                 text width=25pt,
-                                 text centered,
-                                 %node distance	= 5em,
-                                 minimum size   = 25 pt,
-                                 font 				= {\tiny}}}
-  \tikzset{EdgeStyle/.style   = {thick,black,
-  											%rounded corners=4pt,
-                                 ->}}
-  \tikzset{EdgeStyle2/.style  = {thick,ToManage_Green,->}}
-  \tikzset{LabelStyle/.style =   {shape          = circle,
-                                 ball color     = ToManage_Yellow,
-                                 text           = black,midway,
-                                 inner sep      = 2pt,
-                                 outer sep      = 0pt,
-                                 minimum size   = 10 pt,
-  												 text centered, font={\tiny}}}
+%  \tikzset{VertexStyle/.style = {shape          = circle,
+%                                 ball color     = ToManage_Blue,
+%                                 text           = black,
+%                                 inner sep      = 2pt,
+%                                 outer sep      = 0pt,
+%                                 text width=25pt,
+%                                 text centered,
+%                                 %node distance	= 5em,
+%                                 minimum size   = 25 pt,
+%                                 font 				= {\tiny}}}
+%  \tikzset{EdgeStyle/.style   = {thick,black,
+%  											%rounded corners=4pt,
+%                                 ->}}
+%  \tikzset{EdgeStyle2/.style  = {thick,ToManage_Green,->}}
+%  \tikzset{LabelStyle/.style =   {shape          = circle,
+%                                 ball color     = ToManage_Yellow,
+%                                 text           = black,midway,
+%                                 inner sep      = 2pt,
+%                                 outer sep      = 0pt,
+%                                 minimum size   = 10 pt,
+%  												 text centered, font={\tiny}}}
   												 
-  	\tikzset{LabelComment/.style =   {font={\tiny},midway,sloped}}
+%  	\tikzset{LabelComment/.style =   {font={\tiny},midway,sloped}}
 
 %%%% Graphes use cases
 
-\tikzstyle{decision} = [diamond, draw, ball color=ToManage_Green, outer sep = 0pt,
-    text width=30pt, text badly centered, node distance=1.5cm, inner sep=0pt,font={\tiny}]
-\tikzstyle{block} = [rectangle, draw, ball color=ToManage_Blue, 
-    text width=45pt, text centered, rounded corners, minimum height=2em,font={\tiny}]
-\tikzstyle{line} = [draw, -latex',ToManage_Yellow, font={\tiny},thick]
-\tikzstyle{cloud} = [draw, ellipse,ball color=ToManage_Yellow, node distance=1cm,
-    minimum height=2em,font={\tiny}, text width=40pt, text centered]
+%\tikzstyle{decision} = [diamond, draw, ball color=ToManage_Green, outer sep = 0pt,
+%    text width=30pt, text badly centered, node distance=1.5cm, inner sep=0pt,font={\tiny}]
+%\tikzstyle{block} = [rectangle, draw, ball color=ToManage_Blue, 
+%    text width=45pt, text centered, rounded corners, minimum height=2em,font={\tiny}]
+%\tikzstyle{line} = [draw, -latex',ToManage_Yellow, font={\tiny},thick]
+%\tikzstyle{cloud} = [draw, ellipse,ball color=ToManage_Yellow, node distance=1cm,
+%    minimum height=2em,font={\tiny}, text width=40pt, text centered]
