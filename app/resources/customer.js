@@ -26,7 +26,8 @@ International Registered Trademark & Property of ToManage SAS
 MetronicApp.config(function($stateProvider, $urlRouterProvider) {
 
 		// Company
-		$stateProvider.state('societe', {
+		$stateProvider
+		.state('societe', {
 						url: "/societe",
 						abstract: true,
 						templateUrl: "/views/company/index.html"
@@ -40,7 +41,6 @@ MetronicApp.config(function($stateProvider, $urlRouterProvider) {
 						controller: "SocieteController"
 				})
 				.state('societe.show', {
-						parent: "societe",
 						url: "/{id:[0-9a-z]{24}}",
 						templateUrl: "/views/company/fiche.html",
 						data: {
@@ -54,13 +54,6 @@ MetronicApp.config(function($stateProvider, $urlRouterProvider) {
 								pageTitle: 'Fiche societe'
 						}
 				})
-				/*.state('societe.show.person', {
-				    url: "/person",
-				    templateUrl: "/views/company/company.html", //TODO company > person
-				    data: {
-				        pageTitle: 'Fiche societe'
-				    }
-				})*/
 				.state('societe.show.commercial', {
 						url: "/commercial",
 						templateUrl: "/views/company/commercial.html",
@@ -111,7 +104,6 @@ MetronicApp.config(function($stateProvider, $urlRouterProvider) {
 						}
 				})
 				.state('societe.create', {
-						parent: "societe",
 						url: "/create.html",
 						templateUrl: "/views/company/company.html",
 						data: {
@@ -120,7 +112,6 @@ MetronicApp.config(function($stateProvider, $urlRouterProvider) {
 						controller: "SocieteController"
 				})
 				.state('societe.stats', {
-						parent: "societe",
 						url: "/stats",
 						templateUrl: "/views/company/stats.html",
 						data: {

@@ -112,7 +112,7 @@ exports.install = function() {
 				//"$nin": ["ST_NO", "ST_NEVER"]
 				//};
 
-				//console.log(query);
+				console.log(query);
 				SocieteModel.find(query, {
 								name: 1,
 								salesPurchases: 1,
