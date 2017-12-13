@@ -383,19 +383,19 @@ Object.prototype = {
 
 														//Refresh qty total form locations
 														//if (!self.body.forSales) {
-																if (self.body.orderRows[i].locationsReceived && self.body.orderRows[i].locationsReceived.length)
-																		self.body.orderRows[i].qty = _.sum(self.body.orderRows[i].locationsReceived, function(object) {
-																				return object.qty;
-																		});
-																if(!self.body.orderRows[i].qty)
-																	self.body.orderRows[i].qty = 0;
+														if (self.body.orderRows[i].locationsReceived && self.body.orderRows[i].locationsReceived.length)
+																self.body.orderRows[i].qty = _.sum(self.body.orderRows[i].locationsReceived, function(object) {
+																		return object.qty;
+																});
+														if (!self.body.orderRows[i].qty)
+																self.body.orderRows[i].qty = 0;
 														//}
 
 
-														if (!self.body.orderRows[i].qty || self.body.orderRows[i].isDeleted){
-															self.body.orderRows[i].locationsReceived =[];
+														if (!self.body.orderRows[i].qty || self.body.orderRows[i].isDeleted) {
+																self.body.orderRows[i].locationsReceived = [];
 																continue;
-															}
+														}
 
 														self.body.weight += self.body.orderRows[i].qty * self.body.orderRows[i].product.weight;
 												}
@@ -1201,11 +1201,11 @@ Object.prototype = {
 										}
 								});
 
-								var doc = {};
-								doc.successNotify = {
-										title: "Success",
-										message: "PDF Généré"
-								};
+						var doc = {};
+						doc.successNotify = {
+								title: "Success",
+								message: "PDF Généré"
+						};
 						return self.json(doc);
 				});
 		},

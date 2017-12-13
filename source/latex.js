@@ -180,8 +180,8 @@ Template.prototype.applyHandlers = function() {
 								break;
 
 						default:
-							if(handler.value)
-								value = handler.value;
+								if (handler.value)
+										value = handler.value;
 				}
 
 				return callback(null, key, value);

@@ -1248,7 +1248,7 @@ baseSchema.statics.generatePdfById = function(id, model, callback) {
 												tabTotal.push({
 														label: "Total TTC",
 														value: doc.total_ttc,
-														tophline : 2
+														tophline: 2
 												});
 
 												var reglement = "";
@@ -1280,16 +1280,16 @@ baseSchema.statics.generatePdfById = function(id, model, callback) {
 																ref: {
 																		value: doc.ref
 																},
-																to : {
-																	value : {
-																	name : doc.supplier.fullName,
-																	address :  doc.address,
-																	tva : societe.companyInfo.idprof6,
-																	code_client : societe.salesPurchases.ref
-																}
+																to: {
+																		value: {
+																				name: doc.supplier.fullName,
+																				address: doc.address,
+																				tva: societe.companyInfo.idprof6,
+																				code_client: societe.salesPurchases.ref
+																		}
 																},
-																shipping : {
-																	value: doc.shippingAddress
+																shipping: {
+																		value: doc.shippingAddress
 																},
 																title: {
 																		value: modelPdf.langs[0].title
@@ -1308,7 +1308,7 @@ baseSchema.statics.generatePdfById = function(id, model, callback) {
 																		"value": doc.datec,
 																		"format": CONFIG('dateformatShort')
 																},
-																datexp : {
+																datexp: {
 																		"type": "date",
 																		"value": doc.datedl,
 																		"format": CONFIG('dateformatShort')
@@ -1360,7 +1360,7 @@ baseSchema.statics.generatePdfById = function(id, model, callback) {
 																		if (err)
 																				return wCb(err);
 
-																				console.log("end");
+																		console.log("end");
 
 																		if (res && res.nModified)
 																				return wCb(); // Already exist and updated
@@ -1875,7 +1875,7 @@ baseSchema.statics.getById = function(id, callback) {
 																										$eq: ['$$delivery._type', 'GoodsOutNote']
 																								}, {
 																										$eq: ['$$delivery._type', 'GoodsInNote']
-																								},{
+																								}, {
 																										$eq: ['$$delivery._type', 'stockReturns']
 																								}]
 																						}]
@@ -1931,7 +1931,7 @@ baseSchema.statics.getById = function(id, callback) {
 																'deliveries._id': 1,
 																'deliveries.status': 1,
 																'deliveries.datedl': 1,
-																'deliveries._type':1,
+																'deliveries._type': 1,
 																'deliveries.orderRows': {
 																		$filter: {
 																				input: "$deliveries.orderRows",
@@ -1950,27 +1950,32 @@ baseSchema.statics.getById = function(id, callback) {
 																path: '$deliveries.orderRows',
 																preserveNullAndEmptyArrays: true
 														}
-												},{
-													$project: {
-															_id: 1,
-															orderQty: 1,
-															order: 1,
-															product: 1,
-															sequence: 1,
-															'deliveries.ref': 1,
-															'deliveries._id': 1,
-															'deliveries.status': 1,
-															'deliveries.datedl': 1,
-															'deliveries.orderRows.qty' : {
-																$cond : { if : {$eq: ['$deliveries._type', 'stockReturns']},
-															then : {$multiply : [-1 , "$deliveries.orderRows.qty"]},
-														else : "$deliveries.orderRows.qty"
-													}
-													},
-															refProductSupplier: 1,
-															description: 1
-													}
-												},{
+												}, {
+														$project: {
+																_id: 1,
+																orderQty: 1,
+																order: 1,
+																product: 1,
+																sequence: 1,
+																'deliveries.ref': 1,
+																'deliveries._id': 1,
+																'deliveries.status': 1,
+																'deliveries.datedl': 1,
+																'deliveries.orderRows.qty': {
+																		$cond: {
+																				if: {
+																						$eq: ['$deliveries._type', 'stockReturns']
+																				},
+																				then: {
+																						$multiply: [-1, "$deliveries.orderRows.qty"]
+																				},
+																				else: "$deliveries.orderRows.qty"
+																		}
+																},
+																refProductSupplier: 1,
+																description: 1
+														}
+												}, {
 														$group: {
 																_id: "$_id",
 																orderQty: {
@@ -3549,7 +3554,7 @@ const generateDeliveryPdf = function(id, model, callback) {
 																description: doc.lines[i].description,
 																qty_order: doc.lines[i].qty,
 																qty: orderRow.qty,
-																unit:doc.lines[i].product.unit || "U"
+																unit: doc.lines[i].product.unit || "U"
 														});
 
 												/*if (doc.lines[i].product.id.pack && doc.lines[i].product.id.pack.length) {
@@ -3620,17 +3625,17 @@ const generateDeliveryPdf = function(id, model, callback) {
 																"value": doc.ref
 														},
 														bill: {
-															value : {
-																name : doc.address.name || doc.supplier.fullName,
-																address :  doc.address
-														}
-													},
-														to : {
-															value: {
-																address : doc.shippingAddress,
-															tva : societe.companyInfo.idprof6,
-															code_client : societe.salesPurchases.ref
-														}
+																value: {
+																		name: doc.address.name || doc.supplier.fullName,
+																		address: doc.address
+																}
+														},
+														to: {
+																value: {
+																		address: doc.shippingAddress,
+																		tva: societe.companyInfo.idprof6,
+																		code_client: societe.salesPurchases.ref
+																}
 														},
 														title: {
 																value: modelPdf.langs[0].title
@@ -3714,7 +3719,7 @@ const generateDeliveryPdf = function(id, model, callback) {
 																}, function(err, doc) {
 																		if (err)
 																				return wCb(err);
-																				console.log("end");
+																		console.log("end");
 																		wCb();
 																});
 														});
@@ -4519,12 +4524,15 @@ F.on('order:recalculateStatus', function(data, callback) {
 																//_type: {
 																//		$ne: 'stockReturns'
 																//},
-																$or : [{
-																"status.isInventory": {
-																		$ne: null
-																}},
-																{_type: 'stockReturns'}
-															],
+																$or: [{
+																				"status.isInventory": {
+																						$ne: null
+																				}
+																		},
+																		{
+																				_type: 'stockReturns'
+																		}
+																],
 																Status: {
 																		$ne: 'CANCELED'
 																},
@@ -4544,7 +4552,7 @@ F.on('order:recalculateStatus', function(data, callback) {
 																				}
 																		}
 																},
-																_type :1,
+																_type: 1,
 																status: 1
 														}
 												}, {
@@ -4553,19 +4561,24 @@ F.on('order:recalculateStatus', function(data, callback) {
 																orderRow: {
 																		$arrayElemAt: ['$orderRow', 0]
 																},
-																_type : 1,
+																_type: 1,
 																status: 1
 														}
 												}, {
 														$project: {
 																ref: '$ref',
 																orderRow: '$orderRow.orderRowId',
-																qty : {
-																	$cond : { if : {$eq: ['$_type', 'stockReturns']},
-																then : {$multiply : [-1 , "$orderRow.qty"]},
-																else : '$orderRow.qty'
-															}
-														},
+																qty: {
+																		$cond: {
+																				if: {
+																						$eq: ['$_type', 'stockReturns']
+																				},
+																				then: {
+																						$multiply: [-1, "$orderRow.qty"]
+																				},
+																				else: '$orderRow.qty'
+																		}
+																},
 																status: 1
 														}
 												}], function(err, docs) {
