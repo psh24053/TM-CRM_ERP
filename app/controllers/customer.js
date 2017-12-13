@@ -138,10 +138,10 @@ MetronicApp.controller('SocieteController', ['$scope', '$rootScope', '$http', '$
 						// set default layout mode
 						$rootScope.settings.layout.pageBodySolid = false;
 
-						if (typeof superCache.get("SocieteController") !== "undefined") {
-								$scope.page = superCache.get("SocieteController").page;
-								$scope.search = superCache.get("SocieteController").search;
-								$scope.sort = superCache.get("SocieteController").sort;
+						if (typeof superCache.get("SocieteController_"+$scope.forSales) !== "undefined") {
+								$scope.page = superCache.get("SocieteController_"+$scope.forSales).page;
+								$scope.search = superCache.get("SocieteController_"+$scope.forSales).search;
+								$scope.sort = superCache.get("SocieteController_"+$scope.forSales).sort;
 						}
 
 						var dict = ["fk_stcomm", "fk_typent", "fk_effectif", "fk_forme_juridique", "fk_payment_term", "fk_paiement", "fk_civilite", "fk_user_status"];
@@ -226,7 +226,7 @@ MetronicApp.controller('SocieteController', ['$scope', '$rootScope', '$http', '$
 						$scope.grid = {};
 						$scope.checkAll = false;
 
-						superCache.put("SocieteController", {
+						superCache.put("SocieteController_" + $scope.forSales, {
 								sort: $scope.sort,
 								search: $scope.search,
 								page: $scope.page
@@ -369,10 +369,7 @@ MetronicApp.controller('SocieteController', ['$scope', '$rootScope', '$http', '$
 								$scope.checkCodeClient();
 
 								if ($rootScope.$stateParams.id && $rootScope.$state.current.name === "societe.show")
-										if (societe.type == "Company")
 												return $rootScope.$state.go('societe.show.company');
-										else
-												return $rootScope.$state.go('societe.show.contact');
 
 								//console.log(societe);
 
@@ -1814,7 +1811,7 @@ MetronicApp.controller('ContactController', ['$scope', '$rootScope', '$http', '$
 										id: response.societe.id
 								});
 						else
-								$rootScope.$state.go("contact.show", {
+								$rootScope.$state.go("societe.show", {
 										id: response._id
 								});
 				});

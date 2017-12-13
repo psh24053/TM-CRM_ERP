@@ -114,9 +114,9 @@
                                     <span></span>
                                     <span class="check"></span>
                                     <span class="box"></span> @(companies:Customer)</label>
-                                </div> 
-                            </div>                        
-                        </div>        
+                                </div>
+                            </div>
+                        </div>
                         <div class="col-md-6">
                             <div class="md-checkbox-list">
                                 <div class="md-checkbox">
@@ -132,10 +132,10 @@
                                     <span></span>
                                     <span class="check"></span>
                                     <span class="box"></span> @(companies:Subcontractor)</label>
-                                </div> 
-                            </div>                    
-                        </div> 
-                    </div>           
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div class="progress">
                     <div class="progress-bar progress-bar-warning" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: 60%">
@@ -145,11 +145,11 @@
 
                 <div class="profile-usermenu">
                     <ul class="nav">
-                        <li ng-show="societe.type == 'Person'" ng-class="{active: $state.includes('societe.show.person')}">
+                        <!--<li ng-show="societe.type == 'Person'" ng-class="{active: $state.includes('societe.show.person')}">
                             <a ui-sref="societe.show.person({id:societe._id})">
                                 <i class="icon-info"></i> @(Informations) </a>
-                        </li>
-                        <li ng-show="societe.type == 'Company'" ng-class="{active: $state.includes('societe.show.company')}">
+                        </li>-->
+                        <li ng-class="{active: $state.includes('societe.show.company')}">
                             <a ui-sref="societe.show.company({id:societe._id})">
                                 <i class="icon-info"></i> @(Informations) </a>
                         </li>
