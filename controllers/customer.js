@@ -104,7 +104,9 @@ exports.install = function() {
 						query.entity = self.body.entity;
 
 				if (self.query.company)
-						query.company = (self.query.company == 'null' ? null : self.query.company);
+						if(self.query.company !== 'null')
+						query.company =  self.query.company;
+
 
 				if (self.query.type)
 						query.type = self.query.type;
