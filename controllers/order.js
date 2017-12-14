@@ -494,6 +494,8 @@ Object.prototype = {
 
 				var rows = [];
 
+				delete self.body.Status;
+
 				//delete self.body.rows;
 
 				self.body.editedBy = self.user._id;

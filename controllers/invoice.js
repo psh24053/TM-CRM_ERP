@@ -37,13 +37,13 @@ exports.install = function() {
 		F.route('/erp/api/bill', object.getByViewType, ['authorize']);
 		F.route('/erp/api/bill/export', object.exportToType, ['authorize']);
 		F.route('/erp/api/bill/stats', object.stats, ['authorize']);
-		F.route('/erp/api/bill/pdf/', object.pdfAll, ['post', 'json', 'authorize', 60000]);
+		//F.route('/erp/api/bill/pdf/', object.pdfAll, ['post', 'json', 'authorize', 60000]);
 		F.route('/erp/api/bill/{id}', object.show, ['authorize']);
 		F.route('/erp/api/bill', object.create, ['post', 'json', 'authorize'], 512);
 		F.route('/erp/api/bill/{id}', object.clone, ['post', 'json', 'authorize'], 512);
 		// Valid les Factures en bloc
 		//F.route('/erp/api/bill/validate', object.validAll, ['post', 'json', 'authorize']);
-		//F.route('/erp/api/bill/accounting', object.exportAccounting, ['put', 'json', 'authorize']);
+		F.route('/erp/api/bill/accounting', object.exportAccounting, ['put', 'json', 'authorize']);
 		F.route('/erp/api/bill/{id}', object.update, ['put', 'json', 'authorize'], 512);
 		F.route('/erp/api/bill', object.updateFieldsManyId, ['patch', 'json', 'authorize'], 512);
 		F.route('/erp/api/bill/{id}', object.destroy, ['delete', 'authorize']);
@@ -337,14 +337,16 @@ Object.prototype = {
 				});
 		},
 		update: function(id) {
-				var BillModel = MODEL('invoice').Schema;
-				var self = this;
+				const BillModel = MODEL('invoice').Schema;
+				const self = this;
 
 				if (!self.body.createdBy)
 						self.body.createdBy = self.user._id;
 
 				var rows = self.body.lines;
 				let cpt = 1;
+
+				delete self.body.Status;
 
 				for (var i = 0; i < rows.length; i++) {
 						rows[i].sequence = i;
@@ -388,19 +390,91 @@ Object.prototype = {
 
 						self.body.ref = F.functions.refreshSeq(self.body.ref, self.body.datec);
 
-						BillModel.setInvoiceNumber(self.body, function(err, invoice) {
-								BillModel.findByIdAndUpdate(id, invoice, {
-										new: true
-								}, function(err, doc) {
-										if (err) {
-												console.log(err);
-												return self.json({
-														errorNotify: {
-																title: 'Erreur',
-																message: err
+						BillModel.findByIdAndUpdate(id, self.body, {
+								new: true
+						}, function(err, doc) {
+								if (err) {
+										console.log(err);
+										return self.json({
+												errorNotify: {
+														title: 'Erreur',
+														message: err
+												}
+										});
+								}
+
+								F.emit('invoice:recalculateStatus', {
+										userId: self.user._id.toString(),
+										invoice: {
+												_id: doc._id.toString()
+										}
+								});
+
+								if (doc.orders.length)
+										for (var i = 0; i < doc.orders.length; i++)
+												F.emit('order:recalculateStatus', {
+														userId: self.user._id.toString(),
+														order: {
+																_id: doc.orders[i].toString()
 														}
 												});
+
+								//console.log(doc);
+								doc = doc.toObject();
+								doc.successNotify = {
+										title: "Success",
+										message: "Facture enregistrée"
+								};
+								self.json(doc);
+						});
+				});
+		},
+		updateFieldsManyId: function() {
+				const BillModel = MODEL('invoice').Schema;
+				const self = this;
+
+				var body = self.body.body;
+
+				if (!self.body._id || !self.body._id.length)
+						return self.throw500("No id");
+
+				async.eachSeries(self.body._id, function(id, aCb) {
+
+						async.waterfall([
+								function(wCb) {
+										BillModel.findById(id, wCb);
+								},
+								function(doc, wCb) {
+										let cpt = 1;
+
+										for (var i = 0; i < doc.lines.length; i++) {
+												doc.lines[i].sequence = i;
+												if (doc.lines[i].type == 'product' && !doc.lines[i].isDeleted)
+														doc.lines[i].numLine = cpt++;
 										}
+
+										wCb(null, doc);
+								},
+								function(doc, wCb) {
+
+										if (doc.total_ttc === 0)
+												doc.Status = 'DRAFT';
+										else if (body.Status)
+												doc.Status = body.Status;
+
+										doc.updateAt = new Date();
+
+										doc.ref = F.functions.refreshSeq(doc.ref, doc.datec);
+
+										BillModel.setInvoiceNumber(doc, function(err, invoice) {
+												BillModel.findByIdAndUpdate(id, invoice, {
+														new: true
+												}, wCb);
+										});
+								},
+								function(doc, wCb) {
+										if (doc.Status == 'DRAFT')
+												return wCb();
 
 										F.emit('invoice:recalculateStatus', {
 												userId: self.user._id.toString(),
@@ -409,28 +483,36 @@ Object.prototype = {
 												}
 										});
 
-										if (doc.orders.length)
-												for (var i = 0; i < doc.orders.length; i++)
-														F.emit('order:recalculateStatus', {
-																userId: self.user._id.toString(),
-																order: {
-																		_id: doc.orders[i].toString()
-																}
-														});
+										F.emit('invoice:update', {
+												userId: self.user._id.toString(),
+												bill: {
+														_id: doc._id.toString()
+												},
+												route: 'bill'
+										}, BillModel);
 
-										//console.log(doc);
-										doc = doc.toObject();
-										doc.successNotify = {
-												title: "Success",
-												message: "Facture enregistrée"
-										};
-										self.json(doc);
+										wCb();
+								}
+						], aCb);
+				}, function(err) {
+						if (err) {
+								console.log(err);
+								return self.json({
+										errorNotify: {
+												title: 'Erreur',
+												message: err
+										}
 								});
-						});
+						}
+
+						var doc = {};
+						doc.successNotify = {
+								title: "Success",
+								message: "Factures enregistrées"
+						};
+						self.json(doc);
+
 				});
-		},
-		updateFieldsManyId: function() {
-				console.log("todo");
 		},
 		destroy: function(id) {
 				var BillModel = MODEL('invoice').Schema;
@@ -1779,58 +1861,5 @@ Object.prototype = {
 						bill.save();
 
 				});
-		},
-		validAll: function() {
-				var self = this;
-
-				if (!self.body.id)
-						return self.json({});
-
-				var BillModel = MODEL('invoice').Schema;
-
-				async.each(self.body.id, function(id, cb) {
-						BillModel.findOne({
-								_id: id,
-								Status: 'DRAFT'
-						}, function(err, bill) {
-								if (err)
-										return cb(err);
-
-								if (!bill)
-										return cb();
-
-								bill.Status = 'NOT_PAID';
-								BillModel.setInvoiceNumber(bill, function(err, invoice) {
-										if (err)
-												return cb(err);
-
-										BillModel.findByIdAndUpdate(id, invoice, {
-												new: true
-										}, function(err, doc) {
-												if (err)
-														return cb(err);
-
-												cb();
-										});
-								});
-						});
-				}, function(err) {
-						if (err) {
-								console.log(err);
-								return self.json({
-										errorNotify: {
-												title: 'Erreur',
-												message: err
-										}
-								});
-						}
-
-						let doc = {};
-						doc.successNotify = {
-								title: "Success",
-								message: "Factures enregistrées"
-						};
-						self.json(doc);
-				});
-		},
+		}
 };

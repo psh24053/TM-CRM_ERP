@@ -1845,3 +1845,85 @@ F.on('invoice:recalculateStatus', function(data) {
 						});
 		});
 });
+
+F.on('invoice:update', function(data, Model) {
+
+		//console.log(data);
+		console.log("Update emit invoice !", data);
+		if (!data || !data.bill || !data.bill._id)
+				return;
+
+		async.parallel([
+				function(pCb) {
+						if (!Model) //Refresh PDF
+								return pCb();
+
+						Model.findOne({
+								_id: data.bill._id,
+								Status: {
+										$nin: ["DRAFT", "CANCELLED"]
+								}
+						}, "pdfs ref", function(err, doc) {
+								if (err)
+										return pCb(err);
+
+								if (!doc)
+										return pCb();
+
+								if (!doc.pdfs || !doc.pdfs.length)
+										return Model.generatePdfById(data.bill._id, null, function(err, doc) {
+												if (err)
+														return pCb(err);
+
+												pCb(null, doc);
+										});
+
+
+								async.each(doc.pdfs, function(elem, eCb) {
+										Model.generatePdfById(data.bill._id, elem.modelPdf, eCb);
+								}, function(err) {
+										if (err)
+												return pCb(err);
+
+										pCb(null, doc);
+								});
+						});
+				},
+				function(pCb) {
+						pCb(null, null);
+
+
+
+				}
+		], function(err, result) {
+				if (err)
+						return console.log(err);
+
+				if (!data.route)
+						return;
+
+				if (!result[0])
+						return;
+
+				if (data.userId)
+						F.emit('notify:controllerAngular', {
+								userId: data.userId,
+								route: data.route,
+								_id: result[0]._id.toString(),
+								message: result[0].ref + ' modifiee.'
+						});
+
+
+				setTimeout2('notifybill:controllerAngular', function() {
+						F.emit('notify:controllerAngular', {
+								userId: null,
+								route: data.route,
+								//_id: el._id.toString(),
+								//message: "Commande " + el.ref + ' modifie.'
+						});
+				}, 60000);
+
+
+		});
+
+});

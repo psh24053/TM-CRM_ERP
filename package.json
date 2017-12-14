@@ -48,6 +48,7 @@
     "passport-localapikey": "latest",
     "passport-oauth2": "latest",
     "paypal-express-checkout": "^1.4.0",
+    "pdf-merge": "^1.0.2",
     "q": "^1.4.1",
     "shortid": "latest",
     "symeos-mqtt": "latest",
