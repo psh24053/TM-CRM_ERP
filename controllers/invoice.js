@@ -47,7 +47,7 @@ exports.install = function() {
 		F.route('/erp/api/bill/{id}', object.update, ['put', 'json', 'authorize'], 512);
 		F.route('/erp/api/bill', object.updateFieldsManyId, ['patch', 'json', 'authorize'], 512);
 		F.route('/erp/api/bill/{id}', object.destroy, ['delete', 'authorize']);
-		F.route('/erp/api/bill/pdf/{orderId}', object.generatePdf, ['put', 'authorize']);
+		F.route('/erp/api/bill/pdf/{invoiceId}', object.generatePdf, ['put', 'authorize', 15000]);
 		F.route('/erp/api/bill/releveFacture/pdf/{societeId}', object.releve_facture, ['authorize']);
 		F.route('/erp/api/bill/download/{:id}', object.download);
 };
@@ -1116,7 +1116,13 @@ Object.prototype = {
 										}
 								});
 
-						return self.json({});
+						var doc = {};
+						doc.successNotify = {
+								title: "Success",
+								message: "PDF Généré"
+						};
+
+						return self.json(doc);
 				});
 		},
 		pdf: function(ref, self) {

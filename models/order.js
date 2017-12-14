@@ -1164,7 +1164,7 @@ baseSchema.statics.generatePdfById = function(id, model, callback) {
 														switch (doc.lines[i].type) {
 																case 'SUBTOTAL':
 																		tabLines.push({
-																				type : 'subtotal',
+																				type: 'subtotal',
 																				label: "Sous-total",
 																				total_ht: doc.lines[i].total_ht,
 																				buttomhline: 1
@@ -1172,14 +1172,14 @@ baseSchema.statics.generatePdfById = function(id, model, callback) {
 																		break;
 																case 'COMMENT':
 																		tabLines.push({
-																				type : 'comment',
-																				label : '',
+																				type: 'comment',
+																				label: '',
 																				description: doc.lines[i].description
 																		});
 																		break;
 																default:
 																		tabLines.push({
-																				type : 'product',
+																				type: 'product',
 																				seq: doc.lines[i].numLine,
 																				ref: doc.lines[i].product.info.SKU.substring(0, 12),
 																				label: doc.lines[i].product.info.langs[0].name,
@@ -1273,14 +1273,15 @@ baseSchema.statics.generatePdfById = function(id, model, callback) {
 												Latex.Template(modelPdf.latex, doc.entity)
 														.apply({
 																isDiscount: {
-																		value: discount
+																		value: discount,
+																		type: 'boolean'
 																},
 																ref: {
 																		value: doc.ref
 																},
 																to: {
 																		value: {
-																				name: doc.supplier.fullName,
+																				name: doc.address.name || doc.supplier.fullName,
 																				address: doc.address,
 																				tva: societe.companyInfo.idprof6,
 																				code_client: societe.salesPurchases.ref
@@ -1358,7 +1359,7 @@ baseSchema.statics.generatePdfById = function(id, model, callback) {
 																		if (err)
 																				return wCb(err);
 
-																		console.log("end");
+																		//console.log("end");
 
 																		if (res && res.nModified)
 																				return wCb(); // Already exist and updated
@@ -3546,7 +3547,7 @@ const generateDeliveryPdf = function(id, model, callback) {
 
 												if (doc.lines[i].type != 'SUBTOTAL' && doc.lines[i].qty != 0 && orderRow && orderRow.qty != 0)
 														tabLines.push({
-																type : 'product',
+																type: 'product',
 																seq: orderRow.numLine || "",
 																ref: doc.lines[i].product.info.SKU.substring(0, 12),
 																label: doc.lines[i].product.info.langs[0].name,

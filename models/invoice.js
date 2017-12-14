@@ -1297,11 +1297,10 @@ billSchema.statics.generatePdfById = function(id, model, callback) {
 						});
 				},
 				function(modelPdf, wCb) {
-						const SocieteModel = MODEL('Customers').Schema;
-						const BankModel = MODEL('bank').Schema;
+						var discount = false;
 						// Generation de la facture PDF et download
 
-						var discount = false;
+
 						var cond_reglement_code = {};
 						Dict.dict({
 								dictName: "fk_payment_term",
@@ -1339,131 +1338,50 @@ billSchema.statics.generatePdfById = function(id, model, callback) {
 												// Array of lines
 												var tabLines = [];
 
-												if (discount)
-														tabLines.push({
-																keys: [{
-																		key: "seq",
-																		type: "string"
-																}, {
-																		key: "ref",
-																		type: "string"
-																}, {
-																		key: "description",
-																		type: "area"
-																}, {
-																		key: "qty",
-																		type: "number",
-																		precision: 3
-																}, {
-																		key: "pu_ht",
-																		type: "number",
-																		precision: 3
-																}, {
-																		key: "discount",
-																		type: "string"
-																}, {
-																		key: "total_ht",
-																		type: "euro"
-																}, {
-																		key: "tva_tx",
-																		type: "string"
-																}]
-														});
-												else
-														tabLines.push({
-																keys: [{
-																		key: "seq",
-																		type: "string"
-																}, {
-																		key: "ref",
-																		type: "string"
-																}, {
-																		key: "description",
-																		type: "area"
-																}, {
-																		key: "qty",
-																		type: "number",
-																		precision: 0
-																}, {
-																		key: "pu_ht",
-																		type: "number",
-																		precision: 3
-																}, {
-																		key: "total_ht",
-																		type: "euro"
-																}, {
-																		key: "tva_tx",
-																		type: "string"
-																}]
-														});
 												for (var i = 0; i < doc.lines.length; i++) {
 														switch (doc.lines[i].type) {
 																case 'SUBTOTAL':
 																		tabLines.push({
-																				ref: "",
-																				description: "\\textbf{Sous-total}",
-																				tva_tx: null,
-																				pu_ht: "",
-																				discount: "",
-																				qty: "",
-																				total_ht: doc.lines[i].total_ht
+																				type: 'subtotal',
+																				label: "Sous-total",
+																				total_ht: doc.lines[i].total_ht,
+																				buttomhline: 1
 																		});
 																		break;
 																case 'COMMENT':
 																		tabLines.push({
-																				ref: "",
-																				description: "\\textbf{" + doc.lines[i].refProductSupplier + "}" + (doc.lines[i].description ? "\\\\" + doc.lines[i].description : ""),
-																				tva_tx: null,
-																				pu_ht: "",
-																				discount: "",
-																				qty: "",
-																				total_ht: ""
+																				type: 'comment',
+																				label: '',
+																				description: "\\textbf{" + doc.lines[i].refProductSupplier + "}" + (doc.lines[i].description ? "\\\\" + doc.lines[i].description : "")
 																		});
 																		break;
 																default:
 																		//console.log(doc.lines[i]);
 																		tabLines.push({
+																				type: 'product',
 																				seq: doc.lines[i].numLine,
 																				ref: doc.lines[i].product.info.SKU.substring(0, 12),
-																				description: "\\textbf{" + doc.lines[i].product.info.langs[0].name + "}" + (doc.lines[i].description ? "\\\\" + doc.lines[i].description : "") + (doc.lines[i].total_taxes.length > 1 ? "\\\\\\textit{" + doc.lines[i].total_taxes[1].taxeId.langs[0].name + " : " + doc.lines[i].product.taxes[1].value + " \\euro}" : ""),
-																				tva_tx: doc.lines[i].total_taxes[0].taxeId.rate,
+																				label: doc.lines[i].product.info.langs[0].name,
+																				description: doc.lines[i].description + (doc.lines[i].total_taxes.length > 1 ? "\\\\\\textit{" + doc.lines[i].total_taxes[1].taxeId.langs[0].name + " : " + doc.lines[i].product.taxes[1].value + " \\euro}" : ""),
+																				tva_tx: (doc.lines[i].total_taxes.length ? doc.lines[i].total_taxes[0].taxeId.rate : 0),
 																				pu_ht: doc.lines[i].pu_ht,
-																				discount: (doc.lines[i].discount ? (doc.lines[i].discount + " %") : ""),
-																				qty: {
-																						value: doc.lines[i].qty,
-																						unit: (doc.lines[i].product.unit ? " " + doc.lines[i].product.unit : "U")
-																				},
+																				discount: doc.lines[i].discount,
+																				qty: doc.lines[i].qty,
+																				unit: doc.lines[i].product.unit || "U",
 																				total_ht: doc.lines[i].total_ht
 																		});
 														}
 
-														if (doc.lines[i].type == 'SUBTOTAL') {
-																tabLines[tabLines.length - 1].italic = true;
-																tabLines.push({
-																		hline: 1
-																});
-														}
-														//tab_latex += " & \\specialcell[t]{\\\\" + "\\\\} & " +   + " & " + " & " +  "\\tabularnewline\n";
 												}
 
 												// Array of totals
-												var tabTotal = [{
-														keys: [{
-																		key: "label",
-																		type: "string"
-																},
-																{
-																		key: "total",
-																		type: "euro"
-																}
-														]
-												}];
+												var tabTotal = [];
 
 												// Frais de port
 												if (doc.shipping && doc.shipping.total_ht)
 														tabTotal.push({
 																label: "Frais de port",
-																total: doc.shipping.total_ht
+																value: doc.shipping.total_ht
 														});
 
 												// Remise globale
@@ -1471,7 +1389,7 @@ billSchema.statics.generatePdfById = function(id, model, callback) {
 														tabTotal.push({
 																italic: true,
 																label: "Remise globale " + doc.discount.discount.percent + ' %',
-																total: doc.discount.discount.value * -1
+																value: doc.discount.discount.value * -1
 														});
 
 												// Escompte
@@ -1479,25 +1397,25 @@ billSchema.statics.generatePdfById = function(id, model, callback) {
 														tabTotal.push({
 																italic: true,
 																label: "Escompte " + doc.discount.escompte.percent + ' %',
-																total: doc.discount.escompte.value * -1
+																value: doc.discount.escompte.value * -1
 														});
 
 												//Total HT
 												tabTotal.push({
 														label: "Total HT",
-														total: doc.total_ht
+														value: doc.total_ht
 												});
 
 												for (var i = 0; i < doc.total_taxes.length; i++)
 														tabTotal.push({
 																label: "Total " + doc.total_taxes[i].taxeId.langs[0].label,
-																total: doc.total_taxes[i].value
+																value: doc.total_taxes[i].value
 														});
 
 												//Total TTC
 												tabTotal.push({
 														label: "Total TTC",
-														total: doc.total_ttc
+														value: doc.total_ttc
 												});
 
 												var reglement = "";
@@ -1532,83 +1450,61 @@ billSchema.statics.generatePdfById = function(id, model, callback) {
 																cgv: false //TODO Quid des CGV !
 														})
 														.apply({
-																"TITLE": {
-																		"type": "string",
-																		"value": (doc.total_ttc < 0 ? "Avoir" : "Facture")
+																isDiscount: {
+																		value: discount,
+																		type: 'boolean'
 																},
-																"NUM": {
-																		"type": "string",
-																		"value": doc.ref
+																ref: {
+																		value: doc.ref
 																},
-																"DESTINATAIRE.NAME": {
-																		"type": "string",
-																		"value": doc.address.name || doc.supplier.fullName
+																title: {
+																		value: (doc.total_ttc < 0 ? "Avoir" : "Facture")
 																},
-																"DESTINATAIRE.ADDRESS": {
-																		"type": "area",
-																		"value": doc.address.street
+																to: {
+																		value: {
+																				name: doc.address.name || doc.supplier.fullName,
+																				address: doc.address,
+																				tva: societe.companyInfo.idprof6,
+																				code_client: societe.salesPurchases.ref
+																		}
 																},
-																"DESTINATAIRE.ZIP": {
-																		"type": "string",
-																		"value": doc.address.zip
+																ref_client: {
+																		value: doc.ref_client
 																},
-																"DESTINATAIRE.TOWN": {
-																		"type": "string",
-																		"value": doc.address.city
+																period: {
+																		value: period
 																},
-																"DESTINATAIRE.TVA": {
-																		"type": "string",
-																		"value": societe.companyInfo.idprof6
-																},
-																"CODECLIENT": {
-																		"type": "string",
-																		"value": societe.salesPurchases.code_client
-																},
-																//"TITLE": {"type": "string", "value": doc.title},
-																"REFCLIENT": {
-																		"type": "string",
-																		"value": doc.ref_client
-																},
-																"PERIOD": {
-																		"type": "string",
-																		"value": period
-																},
-																"DATEC": {
+																datec: {
 																		"type": "date",
 																		"value": doc.datec,
 																		"format": CONFIG('dateformatShort')
 																},
-																"DATEECH": {
+																dateech: {
 																		"type": "date",
 																		"value": doc.dater,
 																		"format": CONFIG('dateformatShort')
 																},
-																"REGLEMENT": {
-																		"type": "string",
-																		"value": cond_reglement_code.values[doc.cond_reglement_code].label
+																reglement: {
+																		value: cond_reglement_code.values[doc.cond_reglement_code].label
 																},
-																"PAID": {
-																		"type": "string",
-																		"value": mode_reglement_code.values[doc.mode_reglement_code].label
+																paid: {
+																		value: mode_reglement_code.values[doc.mode_reglement_code].label
 																},
-																"NOTES": {
-																		"type": "string",
-																		"value": (doc.notes.length ? doc.notes[0].note : "")
+																notes: {
+																		value: (doc.notes.length ? doc.notes[0].note : ""),
 																},
-																"BK": {
-																		"type": "area",
-																		"value": reglement
+																bank: {
+																		value: reglement
 																},
-																"TABULAR": {
-																		template: (discount ? "tablePriceDiscountLines" : "tablePriceLines"),
+																lines: {
+																		template: modelPdf.template,
 																		value: tabLines
 																},
-																"TOTAL": {
+																total: {
 																		value: tabTotal
 																},
-																"APAYER": {
-																		"type": "euro",
-																		"value": doc.total_ttc || 0
+																APAYER: {
+																		value: doc.total_ttc || 0
 																}
 														})
 														.on('error', wCb)

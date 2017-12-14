@@ -172,6 +172,9 @@ Template.prototype.applyHandlers = function() {
 				var value = "";
 
 				switch (handler.type) {
+						case "boolean":
+								value = handler.value;
+								break;
 
 						case "date":
 								if (handler.value)
@@ -197,7 +200,6 @@ Template.prototype.applyHandlers = function() {
 						handlers,
 						function(handler, next) {
 								// apply the handlers to the content
-								//console.log(handler);
 
 								if (_.isArray(handler.value)) {
 										//if (!handler.value[0] || !handler.value[0].keys)
@@ -267,6 +269,8 @@ Template.prototype.applyHandlers = function() {
 												if (err)
 														return next(err);
 
+												//console.log(value);
+
 												json[key] = {
 														value: value
 												};
@@ -297,6 +301,7 @@ Template.prototype.applyHandlers = function() {
 										return obj;
 								}
 
+								json = JSON.parse(JSON.stringify(json));
 								json = deepMap(json, function(v, k) {
 										if (typeof v !== "string")
 												return v;
@@ -494,7 +499,7 @@ function parse(stream) {
  * @returns {undefined}
  */
 function deleteFolderRecursive(path) {
-return;
+
 		var files = [];
 		if (fs.existsSync(path)) {
 				files = fs.readdirSync(path);
