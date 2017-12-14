@@ -1164,17 +1164,22 @@ baseSchema.statics.generatePdfById = function(id, model, callback) {
 														switch (doc.lines[i].type) {
 																case 'SUBTOTAL':
 																		tabLines.push({
+																				type : 'subtotal',
 																				label: "Sous-total",
-																				total_ht: doc.lines[i].total_ht
+																				total_ht: doc.lines[i].total_ht,
+																				buttomhline: 1
 																		});
 																		break;
 																case 'COMMENT':
 																		tabLines.push({
+																				type : 'comment',
+																				label : '',
 																				description: doc.lines[i].description
 																		});
 																		break;
 																default:
 																		tabLines.push({
+																				type : 'product',
 																				seq: doc.lines[i].numLine,
 																				ref: doc.lines[i].product.info.SKU.substring(0, 12),
 																				label: doc.lines[i].product.info.langs[0].name,
@@ -1194,13 +1199,6 @@ baseSchema.statics.generatePdfById = function(id, model, callback) {
 																		tabLines.push({
 																				buttomhline: 1
 																		});
-														}
-
-														if (doc.lines[i].type == 'SUBTOTAL') {
-																tabLines[tabLines.length - 1].italic = true;
-																tabLines.push({
-																		buttomhline: 1
-																});
 														}
 												}
 
@@ -3548,6 +3546,7 @@ const generateDeliveryPdf = function(id, model, callback) {
 
 												if (doc.lines[i].type != 'SUBTOTAL' && doc.lines[i].qty != 0 && orderRow && orderRow.qty != 0)
 														tabLines.push({
+																type : 'product',
 																seq: orderRow.numLine || "",
 																ref: doc.lines[i].product.info.SKU.substring(0, 12),
 																label: doc.lines[i].product.info.langs[0].name,
@@ -4906,13 +4905,13 @@ F.on('order:recalculateStatus', function(data, callback) {
 																});
 														});
 												});
-								},
+								}
 								//Refresh PDF
-								function(pCb) {
+								/*function(pCb) {
 										if (!OrderModel)
 												return pCb();
 
-										if (order.Status != 'DRAFT')
+										if (order.Status == 'DRAFT' || order.Status == 'CANCELLED')
 												return pCb();
 
 										if (!order.pdfs)
@@ -4921,7 +4920,7 @@ F.on('order:recalculateStatus', function(data, callback) {
 										async.each(order.pdfs, function(elem, eCb) {
 												OrderModel.generatePdfById(data.order._id, elem.modelPdf, eCb)
 										}, pCb);
-								}
+								}*/
 						], function(err, el) {
 								if (err)
 										return wCb(err);

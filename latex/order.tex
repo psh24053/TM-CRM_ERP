@@ -24,6 +24,12 @@
 
 \discountfalse
 
+\directlua{
+ if json.isDiscount.value then
+	 tex.sprint([[\noexpand\discounttrue]])
+ end
+}
+
 \begin{document}
 
 \begin{tabular}{p{9cm} p{8cm}}
