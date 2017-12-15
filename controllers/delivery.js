@@ -36,45 +36,45 @@ var Latex = INCLUDE('latex');
 
 exports.install = function() {
 
-var object = new Object();
-var billing = new Billing();
+		var object = new Object();
+		var billing = new Billing();
 
-F.route('/erp/api/delivery', object.getByViewType, ['authorize']);
-F.route('/erp/api/delivery/export', object.exportToType, ['authorize']);
-F.route('/erp/api/delivery/dt', object.readDT, ['post', 'authorize']);
-F.route('/erp/api/delivery/dt_supplier', object.readDT_supplier, ['post', 'authorize']);
-F.route('/erp/api/delivery/caFamily', object.caFamily, ['authorize']);
-F.route('/erp/api/delivery/statistic', object.statistic, ['post', 'json', 'authorize']);
-//F.route('/erp/api/delivery/pdf/', object.pdfAll, ['post', 'json', 'authorize', 60000]);
-F.route('/erp/api/delivery/csv/', object.csvAll, ['post', 'json', 'authorize']);
-F.route('/erp/api/delivery/mvt/', object.csvMvt, ['post', 'json', 'authorize']);
-//F.route('/erp/api/delivery/pdf/{deliveryId}/{version}', function(ref, version) {
-//		object.pdf(ref + '/' + version, this);
-}, ['authorize']);
-F.route('/erp/api/delivery/pdf/{deliveryId}', object.generatePdf, ['put', 'authorize']);
+		F.route('/erp/api/delivery', object.getByViewType, ['authorize']);
+		F.route('/erp/api/delivery/export', object.exportToType, ['authorize']);
+		F.route('/erp/api/delivery/dt', object.readDT, ['post', 'authorize']);
+		F.route('/erp/api/delivery/dt_supplier', object.readDT_supplier, ['post', 'authorize']);
+		F.route('/erp/api/delivery/caFamily', object.caFamily, ['authorize']);
+		F.route('/erp/api/delivery/statistic', object.statistic, ['post', 'json', 'authorize']);
+		//F.route('/erp/api/delivery/pdf/', object.pdfAll, ['post', 'json', 'authorize', 60000]);
+		F.route('/erp/api/delivery/csv/', object.csvAll, ['post', 'json', 'authorize']);
+		F.route('/erp/api/delivery/mvt/', object.csvMvt, ['post', 'json', 'authorize']);
+		//F.route('/erp/api/delivery/pdf/{deliveryId}/{version}', function(ref, version) {
+		//		object.pdf(ref + '/' + version, this);
+		//}, ['authorize']);
+		F.route('/erp/api/delivery/pdf/{deliveryId}', object.generatePdf, ['put', 'authorize']);
 
-// recupere la liste des courses pour verification
-F.route('/erp/api/delivery/billing', billing.read, ['authorize']);
-F.route('/erp/api/delivery/billing/ca', billing.familyCA, ['authorize']);
+		// recupere la liste des courses pour verification
+		F.route('/erp/api/delivery/billing', billing.read, ['authorize']);
+		F.route('/erp/api/delivery/billing/ca', billing.familyCA, ['authorize']);
 
-F.route('/erp/api/delivery', object.create, ['post', 'json', 'authorize'], 512);
-F.route('/erp/api/delivery/{deliveryId}', object.show, ['authorize']);
-F.route('/erp/api/delivery/{deliveryId}', object.clone, ['post', 'json', 'authorize'], 512);
-F.route('/erp/api/delivery/{deliveryId}', object.update, ['put', 'json', 'authorize'], 512);
+		F.route('/erp/api/delivery', object.create, ['post', 'json', 'authorize'], 512);
+		F.route('/erp/api/delivery/{deliveryId}', object.show, ['authorize']);
+		F.route('/erp/api/delivery/{deliveryId}', object.clone, ['post', 'json', 'authorize'], 512);
+		F.route('/erp/api/delivery/{deliveryId}', object.update, ['put', 'json', 'authorize'], 512);
 
-/**
- * Update Many deliveries : _id is an array in body
- * {
- *    _id : ["id","id"],
- *		 body : {
- *		     Status : "DRAFT"
- *	   }
- * }
- */
-F.route('/erp/api/delivery', object.updateFieldsManyId, ['patch', 'json', 'authorize'], 512);
-F.route('/erp/api/delivery/', object.destroyList, ['delete', 'authorize']);
-F.route('/erp/api/delivery/{deliveryId}', object.destroyList, ['delete', 'authorize']);
-F.route('/erp/api/delivery/download/{:id}', object.download);
+		/**
+		 * Update Many deliveries : _id is an array in body
+		 * {
+		 *    _id : ["id","id"],
+		 *		 body : {
+		 *		     Status : "DRAFT"
+		 *	   }
+		 * }
+		 */
+		F.route('/erp/api/delivery', object.updateFieldsManyId, ['patch', 'json', 'authorize'], 512);
+		F.route('/erp/api/delivery/', object.destroyList, ['delete', 'authorize']);
+		F.route('/erp/api/delivery/{deliveryId}', object.destroyList, ['delete', 'authorize']);
+		F.route('/erp/api/delivery/download/{:id}', object.download);
 };
 
 function Object() {}

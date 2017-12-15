@@ -107,8 +107,18 @@ var billSchema = new Schema({
 		 },*/
 
 		pdfModel: {
-				type: Schema.Types.ObjectId,
-				ref: 'modelspdf'
+				modelId: {
+						type: Schema.Types.ObjectId,
+						ref: 'modelspdf'
+				},
+				htop: {
+						type: Number,
+						default: 0
+				}, //Space in cm before the lines array
+				hbuttom: {
+						type: Number,
+						default: 0
+				}, //Space in cm after the lines array
 		},
 
 		currency: {
@@ -1450,6 +1460,12 @@ billSchema.statics.generatePdfById = function(id, model, callback) {
 																cgv: false //TODO Quid des CGV !
 														})
 														.apply({
+																pdfModel: {
+																		value: {
+																				hbuttom: doc.pdfModel.hbuttom,
+																				htop: doc.pdfModel.htop
+																		}
+																},
 																isDiscount: {
 																		value: discount,
 																		type: 'boolean'
@@ -1522,7 +1538,7 @@ billSchema.statics.generatePdfById = function(id, model, callback) {
 																		'pdfs.modelPdf': modelPdf._id
 																}, {
 																		$set: {
-																				pdfModel: modelPdf._id,
+																				'pdfModel.modelId': modelPdf._id,
 																				'pdfs.$.filename': doc.ref + modelPdf.filename,
 																				"pdfs.$.datec": new Date()
 																		}
@@ -1542,7 +1558,7 @@ billSchema.statics.generatePdfById = function(id, model, callback) {
 																				_id: doc._id
 																		}, {
 																				$set: {
-																						pdfModel: modelPdf._id
+																						'pdfModel.modelId': modelPdf._id
 																				},
 																				$push: {
 																						"pdfs": {

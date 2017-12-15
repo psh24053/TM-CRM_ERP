@@ -499,7 +499,7 @@ function parse(stream) {
  * @returns {undefined}
  */
 function deleteFolderRecursive(path) {
-
+		//return;
 		var files = [];
 		if (fs.existsSync(path)) {
 				files = fs.readdirSync(path);

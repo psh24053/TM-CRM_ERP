@@ -384,51 +384,73 @@
 						<span class="caption-subject"> @(orders:PDFModels)</span>
 						<span class="caption-helper"></span>
 					</div>
+					<div class="tools">
+						<a href="" data-original-title="" title="" class="expand"> </a>
+					</div>
 				</div>
-				<div class="portlet-body" ng-hide="object.Status == 'DRAFT' && !module('offer')">
+				<div class="portlet-body" style="display: none;" ng-hide="object.Status == 'DRAFT' && !module('offer')">
 					<div class="row">
 						<div class="col-md-12">
 							<div class="form-group form-md-line-input">
 								<div class="input-group input-group-sm">
 									<div class="input-group-control">
-										<select class="form-control" id="pdfModel" ng-model="object.pdfModel" ng-options="model._id as model.langs[_language].description for model in $dict.module.pdfModels"></select>
+										<select class="form-control" id="pdfModel" ng-model="object.pdfModel.modelId" ng-options="model._id as model.langs[_language].description for model in $dict.module.pdfModels"></select>
 										<label for="pdfModel"></i> @(orders:PDFModels)</label>
 									</div>
 									<span class="input-group-btn btn-right">
-								<button class="btn green-haze" type="button" ng-click="buildPDF()">@(Generate)</button>
-						</span>
+										<button class="btn green-haze" type="button" ng-click="buildPDF()">@(Generate)</button>
+									</span>
 								</div>
 							</div>
+
+							<div class="form-group form-md-line-input">
+								<input type="number" class="form-control" min="0" max="30" step=".5" ng-model="object.pdfModel.htop">
+								<label for="form_control_1">@(orders:PDFHtop)</label>
+								<span class="help-block">Hauteur (cm) au dessus du tableau lignes</span>
+							</div>
+
+							<div class="form-group form-md-line-input">
+								<input type="number" class="form-control" min="0" max="30" step=".5" ng-model="object.pdfModel.hbuttom">
+								<label for="form_control_1">@(orders:PDFHbuttom)</label>
+								<span class="help-block">Hauteur (cm) en dessous du tableau lignes</span>
+							</div>
+
 						</div>
 					</div>
-					<table class="table table-bordered table-hover">
-						<thead>
-							<tr role="row" class="heading">
-								<th width="25%">
-									Nom du fichier
-								</th>
-								<th width="5%">
-								</th>
-							</tr>
-						</thead>
-						<tbody>
-							<tr ng-repeat="pdf in object.pdfs">
-								<td><a ng-href="/erp/api/pdf/{{pdf.fileId}}?key={{pdf.token}}&filename={{pdf.filename}}">{{pdf.filename}}</a> ({{pdf.datec | date:'dd/MM/yyyy HH:mm'}})</td>
-								<td>
-									<div class="clearfix">
-										<a href="javascript:;" ng-click="buildPDF(pdf.modelPdf)" class="btn btn-icon-only green">
+				</div>
+				<div class="" ng-hide="object.Status == 'DRAFT' && !module('offer')">
+					<div class="row">
+						<div class="col-md-12">
+							<table class="table table-bordered table-hover">
+								<thead>
+									<tr role="row" class="heading">
+										<th width="25%">
+											Nom du fichier
+										</th>
+										<th width="5%">
+										</th>
+									</tr>
+								</thead>
+								<tbody>
+									<tr ng-repeat="pdf in object.pdfs">
+										<td><a ng-href="/erp/api/pdf/{{pdf.fileId}}?key={{pdf.token}}&filename={{pdf.filename}}">{{pdf.filename}}</a> ({{pdf.datec | date:'dd/MM/yyyy HH:mm'}})</td>
+										<td>
+											<div class="clearfix">
+												<a href="javascript:;" ng-click="buildPDF(pdf.modelPdf)" class="btn btn-icon-only green">
 																																					<i class="fa fa-refresh"></i>
 																																			</a>
-										<!--<a href="javascript:;" class="btn btn-icon-only red">
+												<!--<a href="javascript:;" class="btn btn-icon-only red">
 																																					<i class="fa fa-"></i>
 																																			</a>-->
-										<!--<a href="javascript:;" ng-if="object.Status !='DRAFT' && object.contacts.length" ng-href="#" ng-click="sendEmail('@(offers:Offer)','offer',object.address.contacts)" class="btn btn-icon-only blue">
+												<!--<a href="javascript:;" ng-if="object.Status !='DRAFT' && object.contacts.length" ng-href="#" ng-click="sendEmail('@(offers:Offer)','offer',object.address.contacts)" class="btn btn-icon-only blue">
 																																					<i class="fa fa-envelope"></i>
 																																			</a>-->
-								</td>
-							</tr>
-						</tbody>
-					</table>
+										</td>
+									</tr>
+								</tbody>
+							</table>
+							</div>
+						</div>
 					</div>
 				</div>
 

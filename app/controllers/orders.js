@@ -760,8 +760,29 @@ MetronicApp.controller('OrdersController', ['$scope', '$rootScope', '$http', '$m
 						});
 				};
 
-				$scope.buildPDF = function(model) {
-						$http({
+				$scope.buildPDF = function() {
+						return Object.patch({
+								Id: null
+						}, {
+								_id: [$scope.object._id],
+								body: {
+										pdfModel: $scope.object.pdfModel
+								}
+						}, function(object) {
+								/*$http({
+										method: 'PUT',
+										url: '/erp/api/' + $scope.module() + '/pdf/' + this.object._id,
+										params: {
+												model: model || $scope.object.pdfModel,
+												forSales: $scope.object.forSales
+										}
+								}).success(function(data, status) {
+										if (status === 200)*/
+								$scope.findOne();
+								//});
+						});
+
+						/*$http({
 								method: 'PUT',
 								url: '/erp/api/' + $scope.module() + '/pdf/' + this.object._id,
 								params: {
@@ -771,7 +792,7 @@ MetronicApp.controller('OrdersController', ['$scope', '$rootScope', '$http', '$m
 						}).success(function(data, status) {
 								if (status === 200)
 										$scope.findOne();
-						});
+						});*/
 				};
 		}
 ]);

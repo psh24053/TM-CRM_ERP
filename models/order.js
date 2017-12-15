@@ -111,8 +111,18 @@ const baseSchema = new Schema({
 		},
 
 		pdfModel: {
-				type: Schema.Types.ObjectId,
-				ref: 'modelspdf'
+				modelId: {
+						type: Schema.Types.ObjectId,
+						ref: 'modelspdf'
+				},
+				htop: {
+						type: Number,
+						default: 0
+				}, //Space in cm before the lines array
+				hbuttom: {
+						type: Number,
+						default: 0
+				}, //Space in cm after the lines array
 		},
 		/*title: {//For internal use only
 		    ref: String,
@@ -1272,6 +1282,12 @@ baseSchema.statics.generatePdfById = function(id, model, callback) {
 
 												Latex.Template(modelPdf.latex, doc.entity)
 														.apply({
+																pdfModel: {
+																		value: {
+																				hbuttom: doc.pdfModel.hbuttom,
+																				htop: doc.pdfModel.htop
+																		}
+																},
 																isDiscount: {
 																		value: discount,
 																		type: 'boolean'
@@ -1349,7 +1365,7 @@ baseSchema.statics.generatePdfById = function(id, model, callback) {
 																		'pdfs.modelPdf': modelPdf._id
 																}, {
 																		$set: {
-																				pdfModel: modelPdf._id,
+																				'pdfModel.modelId': modelPdf._id,
 																				'pdfs.$.filename': doc.ref + modelPdf.filename,
 																				"pdfs.$.datec": new Date()
 																		}
@@ -1371,7 +1387,7 @@ baseSchema.statics.generatePdfById = function(id, model, callback) {
 																				_id: doc._id
 																		}, {
 																				$set: {
-																						pdfModel: modelPdf._id
+																						'pdfModel.modelId': modelPdf._id
 																				},
 																				$push: {
 																						"pdfs": {
@@ -1560,6 +1576,7 @@ orderCustomerSchema.methods.unsetAllocated = function(callback) {
 										upsert: false
 								},
 								function(err) {
+
 										F.emit('productsAvailability:recalculateOnHand', {
 												product: {
 														_id: elem.product.toString()
@@ -3621,6 +3638,12 @@ const generateDeliveryPdf = function(id, model, callback) {
 
 										Latex.Template(modelPdf.latex, doc.entity)
 												.apply({
+														pdfModel: {
+																value: {
+																		hbuttom: doc.pdfModel.hbuttom,
+																		htop: doc.pdfModel.htop
+																}
+														},
 														ref: {
 																"value": doc.ref
 														},
@@ -3684,7 +3707,7 @@ const generateDeliveryPdf = function(id, model, callback) {
 																'pdfs.modelPdf': modelPdf._id
 														}, {
 																$set: {
-																		pdfModel: modelPdf._id,
+																		'pdfModel.modelId': modelPdf._id,
 																		'pdfs.$.filename': doc.ref + modelPdf.filename,
 																		"pdfs.$.datec": new Date()
 																}
@@ -3704,7 +3727,7 @@ const generateDeliveryPdf = function(id, model, callback) {
 																		_id: doc._id
 																}, {
 																		$set: {
-																				pdfModel: modelPdf._id
+																				'pdfModel.modelId': modelPdf._id
 																		},
 																		$push: {
 																				"pdfs": {
@@ -5048,14 +5071,26 @@ F.on('order:update', function(data, Model) {
 								Status: {
 										$nin: ["DRAFT", "CANCELLED"]
 								}
-						}, "pdfs ref", function(err, doc) {
+						}, "pdfs ref pdfModel", function(err, doc) {
 								if (err)
 										return pCb(err);
 
-								if (!doc || !doc.pdfs.length)
+								if (!doc)
+										return pCb();
+
+								if (doc.pdfModel && doc.pdfModel.modelId)
+										Model.generatePdfById(data.order._id, doc.pdfModel.modelId, function(err) {
+												if (err)
+														console.log(err);
+										});
+
+								if (!doc.pdfs.length)
 										return pCb();
 
 								async.each(doc.pdfs, function(elem, eCb) {
+										if (elem.modelPdf == doc.pdfModel.modelId)
+												return eCb(); // already execute
+
 										Model.generatePdfById(data.order._id, elem.modelPdf, eCb);
 								}, function(err) {
 										if (err)
