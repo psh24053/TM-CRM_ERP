@@ -1879,14 +1879,19 @@ F.on('invoice:update', function(data, Model) {
 								Status: {
 										$nin: ["DRAFT", "CANCELLED"]
 								}
-						}, "pdfs ref", function(err, doc) {
+						}, "pdfs ref pdfModel", function(err, doc) {
 								if (err)
 										return pCb(err);
 
 								if (!doc)
 										return pCb();
 
-								if (!doc.pdfs || !doc.pdfs.length)
+										if (doc.pdfModel && doc.pdfModel.modelId)
+												Model.generatePdfById(data.bill._id, doc.pdfModel.modelId, function(err) {
+														if (err)
+																console.log(err);
+												});
+										else
 										return Model.generatePdfById(data.bill._id, null, function(err, doc) {
 												if (err)
 														return pCb(err);
@@ -1894,8 +1899,16 @@ F.on('invoice:update', function(data, Model) {
 												pCb(null, doc);
 										});
 
+												if (!doc.pdfs.length)
+														return pCb();
+
+
+
 
 								async.each(doc.pdfs, function(elem, eCb) {
+									if (elem.modelPdf == doc.pdfModel.modelId)
+											return eCb(); // already execute
+
 										Model.generatePdfById(data.bill._id, elem.modelPdf, eCb);
 								}, function(err) {
 										if (err)

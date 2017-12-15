@@ -457,6 +457,8 @@ Object.prototype = {
 								},
 								function(doc, wCb) {
 
+										doc = _.extend(doc, body);
+
 										if (doc.total_ttc === 0)
 												doc.Status = 'DRAFT';
 										else if (body.Status)
