@@ -28,12 +28,12 @@ MetronicApp.config(function($stateProvider, $urlRouterProvider) {
 		// Company
 		$stateProvider
 				.state('societe', {
-						url: "/societe",
+						url: "/societe?forSales&type&contact",
 						abstract: true,
 						templateUrl: "/views/company/index.html"
 				})
 				.state('societe.list', {
-						url: "?forSales&type",
+						url: "",
 						templateUrl: "/views/company/list.html",
 						data: {
 								pageTitle: 'Liste des societes'
@@ -121,12 +121,12 @@ MetronicApp.config(function($stateProvider, $urlRouterProvider) {
 				})
 				// Contact
 				.state('contact', {
-						url: "/contact",
+						url: "/contact?type",
 						abstract: true,
 						templateUrl: "/views/contact/index.html"
 				})
 				.state('contact.list', {
-						url: "?type",
+						url: "",
 						templateUrl: "/views/company/list.html",
 						data: {
 								pageTitle: 'Liste des contacts'

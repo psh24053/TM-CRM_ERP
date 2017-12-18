@@ -73,13 +73,17 @@ MetronicApp.controller('SocieteController', ['$scope', '$rootScope', '$http', '$
 						end: moment().endOf('month').subtract(1, 'months').toDate()
 				};
 
+				$scope.forSales = $rootScope.$stateParams.forSales == 0 ? 0 : 1;
+				$scope.type = $rootScope.$stateParams.type;
+
 				$scope.validSiret = false;
 				$scope.societe = {
 						entity: $rootScope.entity,
-						isCutomer: true,
-						isSupplier: false,
+						type: $scope.type ? $scope.type : 'Company',
+						isCutomer: $scope.forSales && $scope.type != 'Person' ? true : false,
+						isSupplier: $scope.forSales ? false : true,
 						VATIsUsed: true,
-						price_level: "BASE",
+						//price_level: "BASE",
 						iban: {}
 				};
 				$scope.siretFound = "";
@@ -111,10 +115,6 @@ MetronicApp.controller('SocieteController', ['$scope', '$rootScope', '$http', '$
 								name: "International"
 						}
 				];
-
-
-				$scope.forSales = $rootScope.$stateParams.forSales == 0 ? 0 : 1;
-				$scope.type = $rootScope.$stateParams.type;
 
 				$scope.resetFilter = function() {
 						superCache.removeAll();

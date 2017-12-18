@@ -409,8 +409,8 @@ exports.latex = {
 						});
 
 						stream.write("\\vspace{-2em}\n");
-						if(self.handlers.pdfModel && self.handlers.pdfModel.value)
-							stream.write("\\vspace{{0}cm}\n".format(self.handlers.pdfModel.value.htop || 0));
+						if (self.handlers.pdfModel && self.handlers.pdfModel.value)
+								stream.write("\\vspace{{0}cm}\n".format(self.handlers.pdfModel.value.htop || 0));
 
 						stream.write(`
 						\\begin{flushright}
@@ -613,8 +613,8 @@ Total HT &
 
 						stream.write('\\end{longtable}');
 
-						if(self.handlers.pdfModel && self.handlers.pdfModel.value)
-							stream.write("\\vspace{{0}cm}\n".format(self.handlers.pdfModel.value.hbuttom || 0));
+						if (self.handlers.pdfModel && self.handlers.pdfModel.value)
+								stream.write("\\vspace{{0}cm}\n".format(self.handlers.pdfModel.value.hbuttom || 0));
 
 						stream.end();
 
