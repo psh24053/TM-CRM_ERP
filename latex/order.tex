@@ -71,7 +71,7 @@
 
 \begin{minipage}[t]{0.60\textwidth}
 {\small \it Informations :}\\
-\directlua{tex.print(json.notes.value)} \\
+\directlua{tex.print(json.notes.value or " ")} \\
 \end{minipage}
 \hspace{1cm}
 \begin{minipage}[t]{0.32\textwidth}

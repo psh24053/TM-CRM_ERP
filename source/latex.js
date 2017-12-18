@@ -81,6 +81,113 @@ function Template(arg, entity, options) {
 		this.handlers = []; // variables
 		this.entity = entity;
 
+		// make temporary directory to create and compile latex pdf
+		this.dirPath = F.path.temp() + "pdfcreator-" + shortId.generate();
+		fs.mkdirSync(this.dirPath);
+
+		this.formatter = function(handler, key) {
+				var value = "";
+				const fixedWidthString = require('fixed-width-string');
+
+				if (!handler.type)
+						handler.type = "string";
+
+				switch (handler.type) {
+						case "string":
+								if (handler.value) {
+										value = handler.value.toString();
+										//console.log(handler);
+										value = value.replace(/_/gi, "\\_")
+												.replace(/%/gi, "\\%")
+												.replace(/&/gi, "\\&")
+												.replace(/\n/g, " ");
+								}
+								break;
+						case "area":
+								if (handler.value) {
+										value = handler.value;
+										value = value.replace(/_/gi, "\\_")
+												.replace(/%/gi, "\\%")
+												.replace(/&/gi, "\\&")
+												.replace(/\n/g, "\\\\");
+								}
+								break;
+						case "number":
+								// null value -> not 0
+								if (!handler.value) {
+										value = "";
+										break;
+								}
+								if (handler.value && typeof handler.value === "object") {
+										value = accounting.formatNumber(handler.value.value, {
+												decimal: ",",
+												thousand: " ",
+												precision: (handler.precision !== null ? handler.precision : 2)
+										});
+										if (handler.value.unit)
+												value += " " + handler.value.unit;
+								} else
+										value = accounting.formatNumber(handler.value, {
+												decimal: ",",
+												thousand: " ",
+												precision: (handler.precision !== null ? handler.precision : 2)
+										});
+								break;
+						case "euro":
+								if (!handler.value) {
+										value = "";
+										break;
+								}
+								value = accounting.formatMoney(handler.value, {
+										symbol: "€",
+										format: "%v %s",
+										decimal: ",",
+										thousand: " ",
+										precision: 2
+								});
+								break;
+						case "percent":
+								value = accounting.formatNumber(handler.value, {
+										format: "%v %s",
+										decimal: ",",
+										thousand: " ",
+										precision: (handler.precision !== null ? handler.precision : 2)
+								});
+								value = value.toString() + " \\%";
+								break;
+						case "boolean":
+								value = handler.value;
+								break;
+
+						case "dateShort":
+								if (handler.value)
+										value = moment(handler.value).format(CONFIG('dateformatShort'));
+
+								break;
+						case "dateLong":
+								if (handler.value)
+										value = moment(handler.value).format(CONFIG('dateformatLong'));
+
+								break;
+						case "cent":
+								break;
+						case "ean13":
+								if (typeof handler.value == 'undefined')
+										handler.value = 0;
+
+								if (!handler.value)
+										handler.value = 0;
+								value = fixedWidthString(handler.value, 13, {
+										padding: '0',
+										align: 'right'
+								});
+								break;
+				}
+
+				return value;
+
+		};
+
 		if (typeof options !== 'object')
 				this.options = {};
 		else
@@ -100,14 +207,15 @@ util.inherits(Template, events.EventEmitter);
  * @emit end {Archive} The read stream of the finished document.
  */
 
-Template.prototype.apply = function(handler) {
+Template.prototype.apply = function(handlers) {
 
 		// provide a shortcut for simple value applying and convert to array
-		this.handlers = _.values(_.reduce(handler, function(result, num, key) {
+		/*this.handlers = _.values(_.reduce(handler, function(result, num, key) {
 				num.id = key;
 				result[key] = num;
 				return result;
-		}, {}));
+		}, {}));*/
+		this.handlers = handlers;
 		//console.log(this.handlers);
 
 		// if the template is already running the action is complete
@@ -168,35 +276,12 @@ Template.prototype.applyHandlers = function() {
 		const self = this;
 		var json = {};
 
-		function apply(handler, key, callback) {
-				var value = "";
-
-				switch (handler.type) {
-						case "boolean":
-								value = handler.value;
-								break;
-
-						case "date":
-								if (handler.value)
-										value = moment(handler.value).format(handler.format);
-
-								break;
-
-						default:
-								if (handler.value)
-										value = handler.value;
-				}
-
-				return callback(null, key, value);
-
-		}
-
 		return function(content, done) {
 				//console.log(content);
 
 				content = content.replace(new RegExp("--LINES--", "g"), null || "lines"); // TODO need replace null !
 
-				async.eachSeries(
+				/*async.eachSeries(
 						handlers,
 						function(handler, next) {
 								// apply the handlers to the content
@@ -264,7 +349,8 @@ Template.prototype.applyHandlers = function() {
 
 												next();
 										});*/
-								} else {
+				/*} else {
+
 										apply(handler, handler.id, function(err, key, value) {
 												if (err)
 														return next(err);
@@ -282,46 +368,69 @@ Template.prototype.applyHandlers = function() {
 						},
 						function(err) {
 								if (err)
-										return done(err);
+										return done(err);*/
 
-								function deepMap(obj, cb) {
+				function setFirstUpperCase(name) {
+						return name.charAt(0).toUpperCase() + name.substr(1);
+				}
 
-										Object.keys(obj).forEach(function(k) {
-												var val;
 
-												if (obj[k] !== null && typeof obj[k] === 'object') {
-														val = deepMap(obj[k], cb);
-												} else {
-														val = cb(obj[k], k);
-												}
+				function deepMap(obj, prop, cb) {
+						Object.keys(obj).forEach(function(k) {
+								var val;
 
-												obj[k] = val;
-										});
+								//console.log(prop, typeof obj[k]);
 
-										return obj;
+								if (obj[k] !== null && _.isArray(obj[k])) {
+										cb(obj[k], k, prop + setFirstUpperCase(k)); // Export Array to new .tex file
+										return "";
+								} else if (k.indexOf('_') != -1)
+										return console.log("Key latex contains an _", k); //Ignore keys with an _
+								else if (obj[k] !== null && !(obj[k] instanceof Date) && typeof obj[k] === 'object') // Date format is already on object FIX
+										val = deepMap(obj[k], prop + setFirstUpperCase(k), cb);
+								else {
+										val = cb(obj[k], k, prop + setFirstUpperCase(k));
+										streamJSON.write("\\newcommand{\\{0}}{{1}}\n".format(prop + setFirstUpperCase(k), val));
 								}
 
-								json = JSON.parse(JSON.stringify(json));
-								json = deepMap(json, function(v, k) {
-										if (typeof v !== "string")
-												return v;
+								//if(prop == )
 
-										return v.replace(/_/gi, "\\_")
-												.replace(/%/gi, "\\%")
-												.replace(/&/gi, "\\&")
-												.replace(/\n/g, "\\\\");
-								});
+								obj[k] = val;
+						});
 
-								self.on('json', function(dirPath) {
-										fs.writeFile(path.join(dirPath, "data.json"), JSON.stringify(json), function(err) {
-												if (err)
-														emit('error', err);
-										});
-								});
+						return obj;
+				}
 
-								done(null, content);
-						}
-				);
+				const streamJSON = fs.createWriteStream(path.join(self.dirPath, 'json.tex'), {
+						flags: 'a'
+				});
+
+				//json = JSON.parse(JSON.stringify(handlers));
+				//console.log(handlers);
+
+				json = deepMap(handlers, "json", function(v, k, longKey) {
+						if (MODULE('order').latex.formatters[longKey] && typeof MODULE('order').latex.formatters[longKey] == 'function')
+								return MODULE('order').latex.formatters[longKey](self, {
+										value: v,
+										isDiscount: handlers.isDiscount.value
+								}, k);
+
+						return self.formatter({
+								type: MODULE('order').latex.formatters[longKey],
+								value: v
+						}, k);
+				});
+
+				streamJSON.end();
+
+
+				/*fs.writeFile(path.join(self.dirPath, "data.json"), JSON.stringify(json), function(err) {
+						if (err)
+								emit('error', err);
+				});*/
+
+				done(null, content);
+				//});
 		};
 };
 /**
@@ -417,6 +526,7 @@ Template.prototype.finalize = function(done) {
  */
 
 Template.prototype.compile = function(layout, inputTex) {
+		const self = this;
 
 		if (typeof layout === 'undefined') // Choose an other model latex
 				layout = "main"; // .tex .log ...
@@ -424,27 +534,21 @@ Template.prototype.compile = function(layout, inputTex) {
 		var emit = this.emit.bind(this);
 
 		var compile = function(tex) {
-				// make temporary directory to create and compile latex pdf
-				var dirPath = F.path.temp() + "pdfcreator-" + shortId.generate();
-
-				fs.mkdirSync(dirPath);
-				emit('json', dirPath);
-
-				var inputPath = path.join(dirPath, "main.tex");
-				var compilePath = path.join(dirPath, layout + ".tex");
+				var inputPath = path.join(self.dirPath, "main.tex");
+				var compilePath = path.join(self.dirPath, layout + ".tex");
 				var afterCompile = function(err) {
 						// store the logs for the user here
-						fs.readFile(path.join(dirPath, layout + ".log"), function(err, data) {
+						fs.readFile(path.join(self.dirPath, layout + ".log"), function(err, data) {
 								if (err) {
 										return emit('error', "Error while trying to read logs.");
 								}
 
 								var pdfTitle = layout + ".pdf",
-										tempfile = path.join(dirPath, pdfTitle);
+										tempfile = path.join(self.dirPath, pdfTitle);
 								var outputStream = fs.createReadStream(tempfile);
 								emit('pipe', outputStream);
 								outputStream.on('end', function() {
-										deleteFolderRecursive(dirPath);
+										deleteFolderRecursive(self.dirPath);
 										emit('end');
 								});
 								return;
@@ -455,8 +559,8 @@ Template.prototype.compile = function(layout, inputTex) {
 								console.log(err);
 								return emit('error', "An error occured even before compiling");
 						}
-						//process.chdir(dirPath);
-						var copyPackages = ["cp -r", latex.includes + ".", dirPath + "/"].join(" ");
+						//process.chdir(self.dirPath);
+						var copyPackages = ["cp -r", latex.includes + ".", self.dirPath + "/"].join(" ");
 						exec(copyPackages, function(err) {
 								if (err) {
 										console.log(err);
@@ -464,8 +568,8 @@ Template.prototype.compile = function(layout, inputTex) {
 								}
 
 								// compile the document (or at least try)
-								exec("cd " + dirPath + " && TEXINPUTS=" + dirPath + ":$TEXINPUTS lualatex -interaction=nonstopmode -output-directory=" + dirPath + " " + compilePath + " > /dev/null 2>&1", function() {
-										exec("cd " + dirPath + " && TEXINPUTS=" + dirPath + ":$TEXINPUTS lualatex -interaction=nonstopmode -output-directory=" + dirPath + " " + compilePath + " > /dev/null 2>&1", afterCompile);
+								exec("TEXINPUTS=" + self.dirPath + ":$TEXINPUTS pdflatex -interaction=nonstopmode -output-directory=" + self.dirPath + " " + compilePath + " > /dev/null 2>&1", function() {
+										exec("TEXINPUTS=" + self.dirPath + ":$TEXINPUTS pdflatex -interaction=nonstopmode -output-directory=" + self.dirPath + " " + compilePath + " > /dev/null 2>&1", afterCompile);
 								});
 						});
 				});

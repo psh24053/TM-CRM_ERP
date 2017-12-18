@@ -1300,7 +1300,7 @@ baseSchema.statics.generatePdfById = function(id, model, callback) {
 																				name: doc.address.name || doc.supplier.fullName,
 																				address: doc.address,
 																				tva: societe.companyInfo.idprof6,
-																				code_client: societe.salesPurchases.ref
+																				codeClient: societe.salesPurchases.ref
 																		}
 																},
 																shipping: {
@@ -1309,24 +1309,20 @@ baseSchema.statics.generatePdfById = function(id, model, callback) {
 																title: {
 																		value: modelPdf.langs[0].title
 																},
-																ref_client: {
+																refClient: {
 																		value: doc.ref_client
 																},
-																delivery_mode: {
+																deliveryMode: {
 																		value: doc.delivery_mode
 																},
 																period: {
 																		value: period
 																},
 																datec: {
-																		"type": "date",
-																		"value": doc.datec,
-																		"format": CONFIG('dateformatShort')
+																		value: doc.datec
 																},
 																datexp: {
-																		"type": "date",
-																		"value": doc.datedl,
-																		"format": CONFIG('dateformatShort')
+																		value: doc.datedl
 																},
 																reglement: {
 																		value: cond_reglement_code.values[doc.cond_reglement_code].label
@@ -1341,7 +1337,6 @@ baseSchema.statics.generatePdfById = function(id, model, callback) {
 																		value: reglement
 																},
 																lines: {
-																		template: modelPdf.template,
 																		value: tabLines
 																},
 																total: {
@@ -3657,16 +3652,16 @@ const generateDeliveryPdf = function(id, model, callback) {
 																value: {
 																		address: doc.shippingAddress,
 																		tva: societe.companyInfo.idprof6,
-																		code_client: societe.salesPurchases.ref
+																		codeClient: societe.salesPurchases.ref
 																}
 														},
 														title: {
 																value: modelPdf.langs[0].title
 														},
-														ref_client: {
+														refClient: {
 																value: doc.ref_client
 														},
-														delivery_mode: {
+														deliveryMode: {
 																value: doc.delivery_mode
 														},
 														barcode: {
@@ -5088,8 +5083,9 @@ F.on('order:update', function(data, Model) {
 										return pCb();
 
 								async.each(doc.pdfs, function(elem, eCb) {
-										if (elem.modelPdf == doc.pdfModel.modelId)
+										if (elem.modelPdf.toString() == doc.pdfModel.modelId.toString()) {
 												return eCb(); // already execute
+										}
 
 										Model.generatePdfById(data.order._id, elem.modelPdf, eCb);
 								}, function(err) {

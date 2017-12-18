@@ -1886,12 +1886,12 @@ F.on('invoice:update', function(data, Model) {
 								if (!doc)
 										return pCb();
 
-										if (doc.pdfModel && doc.pdfModel.modelId)
-												Model.generatePdfById(data.bill._id, doc.pdfModel.modelId, function(err) {
-														if (err)
-																console.log(err);
-												});
-										else
+								if (doc.pdfModel && doc.pdfModel.modelId)
+										Model.generatePdfById(data.bill._id, doc.pdfModel.modelId, function(err) {
+												if (err)
+														console.log(err);
+										});
+								else
 										return Model.generatePdfById(data.bill._id, null, function(err, doc) {
 												if (err)
 														return pCb(err);
@@ -1899,15 +1899,15 @@ F.on('invoice:update', function(data, Model) {
 												pCb(null, doc);
 										});
 
-												if (!doc.pdfs.length)
-														return pCb();
+								if (!doc.pdfs.length)
+										return pCb();
 
 
 
 
 								async.each(doc.pdfs, function(elem, eCb) {
-									if (elem.modelPdf == doc.pdfModel.modelId)
-											return eCb(); // already execute
+										if (elem.modelPdf == doc.pdfModel.modelId)
+												return eCb(); // already execute
 
 										Model.generatePdfById(data.bill._id, elem.modelPdf, eCb);
 								}, function(err) {
