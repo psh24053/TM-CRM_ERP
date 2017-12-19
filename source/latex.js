@@ -193,6 +193,13 @@ function Template(arg, entity, options) {
 		else
 				this.options = options;
 		// the constructor now works with a stream, too
+
+
+		if (options.module)
+				this.module = MODULE(options.module).latex;
+		else
+				this.module = MODULE('order').latex;
+
 		if (arg)
 				this.stream = fs.createReadStream(latex.models + arg);
 }
@@ -405,18 +412,17 @@ Template.prototype.applyHandlers = function() {
 						flags: 'a'
 				});
 
-				//json = JSON.parse(JSON.stringify(handlers));
 				//console.log(handlers);
 
 				json = deepMap(handlers, "json", function(v, k, longKey) {
-						if (MODULE('order').latex.formatters[longKey] && typeof MODULE('order').latex.formatters[longKey] == 'function')
-								return MODULE('order').latex.formatters[longKey](self, {
+						if (self.module.formatters[longKey] && typeof self.module.formatters[longKey] == 'function')
+								return self.module.formatters[longKey](self, {
 										value: v,
 										isDiscount: handlers.isDiscount.value
 								}, k);
 
 						return self.formatter({
-								type: MODULE('order').latex.formatters[longKey],
+								type: self.module.formatters[longKey],
 								value: v
 						}, k);
 				});

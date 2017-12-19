@@ -19,17 +19,16 @@
 \makeatother
 
 \newcommand{\FOOT}{--FOOT--}
-\renewcommand{\HEAD}{\directlua{tex.print(json.title.value)} \directlua{tex.print(json.ref.value)}}
+\include{json}
+\renewcommand{\HEAD}{\jsonTitleValue \  \jsonRefValue}
 
 \newif\ifdiscount
 
+\ifdefined\jsonIsDiscountValue
+\discounttrue
+\else
 \discountfalse
-
-\directlua{
- if json.isDiscount.value then
-	 tex.sprint([[\noexpand\discounttrue]])
- end
-}
+\fi
 
 \begin{document}
 
@@ -40,10 +39,10 @@
     \vspace{0pt}
    \raggedleft
 	%\begin{flushright}
-	\textcolor{violet}{\textsc{\Large \directlua{tex.print(json.title.value)} \directlua{tex.print(json.ref.value)}}}\\
-	Date de facture :  \directlua{tex.print(json.datec.value)}\\ \directlua{tex.print(json.period.value)}
-	Ref. commande client :  \directlua{tex.print(json.ref_client.value)}\\
-	TVA Intra. du  client : \directlua{tex.print(json.to.value.tva or " ")}~\\
+	\textcolor{violet}{\textsc{\Large \jsonTitleValue \  \jsonRefValue}}\\
+	Date de facture :   \jsonDatecValue\\ \jsonPeriodValue
+	Ref. commande client :  \jsonRefClientValue\\
+	TVA Intra. du  client : \jsonToValueTva ~\\
 \end{tabular}
 
 %\vspace{-1em}
@@ -59,63 +58,64 @@
 {\small Destinataire :}
 
 \begin{fminipage}
-\textbf{\large \directlua{tex.print(json.to.value.name)}}\\
-\directlua{tex.print(json.to.value.address.street)}\\
-\textsc{\directlua{tex.print(json.to.value.address.zip)} \directlua{tex.print(json.to.value.address.city)}}\\
+\textbf{\large \jsonToValueName}\\
+\jsonToValueAddressStreet\\
+\textsc{\jsonToValueAddressZip \ \jsonToValueAddressCity}\\
 \begin{minipage}{\textwidth}
 \flushright
-{\tiny \directlua{tex.print(json.to.value.code_client)}}
+{\tiny \jsonToValueCodeClient}
 \end{minipage}
 \end{fminipage}
 \end{minipage}
 
 \begin{minipage}[t]{0.60\textwidth}
 {\small \it Informations :}\\
-\directlua{tex.print(json.notes.value)} \\
+\jsonNotesValue \\
 \end{minipage}
 \hspace{1cm}
 \begin{minipage}[t]{0.32\textwidth}
 \begin{flushright}
-\textit{Date d'échéance : \textbf{\directlua{tex.print(json.dateech.value)}}}\\
-\vspace{1em}
-{\footnotesize \textit{Montants exprimés en \euro}}
+{\it Date d'échéance : \textbf{\jsonDateechValue}}
 \end{flushright}
 \end{minipage}
 
-\input{lines}
+\input{linesRef}
 
-\begin{minipage}[t]{0.49\textwidth}
-\begin{fminipage}
-{\footnotesize \textbf{Conditions de règlement :} \directlua{tex.print(json.reglement.value)}}\\
-{\footnotesize Règlement TTC par \textbf{\directlua{tex.print(json.paid.value)}} \directlua{tex.print(json.bank.value)}}\\
-{\it \footnotesize --VATMODE--}
-\end{fminipage}
+\fbox{
+\begin{minipage}[t]{0.45\textwidth}
+\setlength{\parskip}{0.3pt}
+\begin{footnotesize}
+\textbf{Conditions de r\`eglement :} \jsonReglementValue\\
+R\`eglement TTC par \textbf{\jsonPaidValue} \ \jsonBankValue\\
+\textit{--VATMODE--}
+
+\textit{En cas de retard de paiement, une p\'enalit\'e forfaitaire de 40 euros sera due au titre des frais de recouvrement.}
+
+\end{footnotesize}
 \end{minipage}
-\hspace{.1cm}
-\begin{minipage}[t]{0.50\textwidth}
+}
+\hspace{3.2cm}
+\begin{minipage}[t]{6cm}
+\vspace{-10pt} %fix error space with no text in minipage
 \begin{flushright}
-\begin{tabular}{|p{4.5cm} r|}
+
+\begin{tabular}{|p{3cm} r|}
 
 \hline
-\directlua{printTotal()}
+\input{totals}
 \hline
-\rowcolor{violet}\textcolor{white}{NET à payer} &\textcolor{white}{\directlua{tex.print(json.APAYER.value)}} \\ 
 \hline
-\end{tabular} 
+%\rowcolor{violet}\textcolor{white}{NET à payer} &\textcolor{white}{\jsonAPAYERValue} \\ 
+NET à payer & \jsonAPAYERValue \\ 
+\hline
+
+\end{tabular}
+
 \end{flushright}
-%\begin{flushright}
-%\begin{footnotesize}
-%Versements déjà effectués :
-% \begin{tabular}{p{1.8cm} c p{1.8cm} c}
-%Règlement & Montant & Type & Numéro \\ 
-%\ghline 
-% --DATEACPTE--& --ACPTE-- & --MODEREG-- & --NUMP-- \\ 
-%\ghline 
-%\end{tabular}
-% \end{footnotesize} 
-%\end{flushright}
-\end{minipage}
 
+%\vspace{3em}
+
+
+\end{minipage}
 
 \end{document}
-

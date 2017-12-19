@@ -1359,6 +1359,9 @@ baseSchema.statics.generatePdfById = function(id, model, callback) {
 																lines: {
 																		value: tabLines
 																},
+																linesRef: {
+																		value: tabLines
+																},
 																total: {
 																		value: tabTotal
 																},

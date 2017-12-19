@@ -1457,7 +1457,8 @@ billSchema.statics.generatePdfById = function(id, model, callback) {
 														period = "\\textit{P\\'eriode du " + moment(doc.dateOf).format(CONFIG('dateformatShort')) + " au " + moment(doc.dateTo).format(CONFIG('dateformatShort')) + "}\\\\";
 
 												Latex.Template(modelPdf.latex, doc.entity, {
-																cgv: false //TODO Quid des CGV !
+																cgv: false, //TODO Quid des CGV !
+																module: 'bill'
 														})
 														.apply({
 																pdfModel: {
@@ -1479,26 +1480,22 @@ billSchema.statics.generatePdfById = function(id, model, callback) {
 																to: {
 																		value: {
 																				name: doc.address.name || doc.supplier.fullName,
-																				address: doc.address,
+																				address: doc.address.toObject(),
 																				tva: societe.companyInfo.idprof6,
-																				code_client: societe.salesPurchases.ref
+																				codeClient: societe.salesPurchases.ref
 																		}
 																},
-																ref_client: {
+																refClient: {
 																		value: doc.ref_client
 																},
 																period: {
 																		value: period
 																},
 																datec: {
-																		"type": "date",
-																		"value": doc.datec,
-																		"format": CONFIG('dateformatShort')
+																		value: doc.datec
 																},
 																dateech: {
-																		"type": "date",
-																		"value": doc.dater,
-																		"format": CONFIG('dateformatShort')
+																		value: doc.dater
 																},
 																reglement: {
 																		value: cond_reglement_code.values[doc.cond_reglement_code].label
@@ -1513,7 +1510,9 @@ billSchema.statics.generatePdfById = function(id, model, callback) {
 																		value: reglement
 																},
 																lines: {
-																		template: modelPdf.template,
+																		value: tabLines
+																},
+																linesRef: {
 																		value: tabLines
 																},
 																total: {
@@ -1902,11 +1901,8 @@ F.on('invoice:update', function(data, Model) {
 								if (!doc.pdfs.length)
 										return pCb();
 
-
-
-
 								async.each(doc.pdfs, function(elem, eCb) {
-										if (elem.modelPdf == doc.pdfModel.modelId)
+										if (elem.modelPdf.toString() == doc.pdfModel.modelId.toString())
 												return eCb(); // already execute
 
 										Model.generatePdfById(data.bill._id, elem.modelPdf, eCb);
