@@ -540,6 +540,10 @@ const baseSchema = new Schema({
 		integrationId: String,
 		//sequence: Number,
 		//name: String
+		type: {
+			type: String,
+			default: 'customer'
+		},
 		oldId: String
 }, options);
 
@@ -580,6 +584,22 @@ var orderCustomerSchema = new Schema({
 						enum: ['NOR', 'NOT', 'NOA', 'ALL']
 				}
 		}
+});
+
+var monitoringSchema = new Schema({
+	order: {
+		type: ObjectId,
+		ref: 'order'
+	},
+	employee: {
+		type: ObjectId,
+		ref: 'Employees'
+	},
+	date: Date,
+	hours: {
+		nonProductive: Number,
+		productive: Number
+	}
 });
 
 baseSchema.statics.query = function(options, callback) {
@@ -4324,7 +4344,6 @@ stockReturnSchema.pre('save', setNameReturns);
 
 ordersFabSchema.pre('save', setNameOrdersFab);
 
-
 //goodsOutNoteSchema.statics.getById = getDeliveryById;
 //goodsInNoteSchema.statics.getById = getDeliveryById;
 
@@ -4341,6 +4360,8 @@ const goodsInNote = Order.discriminator('GoodsInNote', goodsInNoteSchema);
 
 const ordersFab = Order.discriminator('OrdersFab', ordersFabSchema);
 
+const monitoring = Order.discriminator('monitoring', monitoringSchema);
+
 exports.Schema = {
 		Order: Order, //Only for READING
 		OrderCustomer: orderCustomer,
@@ -4354,7 +4375,9 @@ exports.Schema = {
 		stockTransactions: stockTransactions,
 		stockReturns: stockReturns,
 
-		OrdersFab: ordersFab
+		OrdersFab: ordersFab,
+
+		Monitoring: monitoring
 };
 
 exports.Status = {

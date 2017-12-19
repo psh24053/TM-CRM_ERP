@@ -47,7 +47,10 @@ MetronicApp.controller('OrdersController', ['$scope', '$rootScope', '$http', '$m
 						billing: {},
 						address: {},
 						shippingAddress: {},
-						lines: []
+						lines: [],
+						orderRowSupplier: [],
+						orderRowSubcontractor: [],
+						monitoring: []
 				};
 
 				$scope.allowValidate = false;
@@ -461,6 +464,10 @@ MetronicApp.controller('OrdersController', ['$scope', '$rootScope', '$http', '$m
 						//create new order
 						order.$save(function(response) {
 								response.lines = object.lines;
+
+								response.orderRowSupplier = object.orderRowSupplier;
+								response.orderRowSubcontractor = object.orderRowSubcontractor;
+								response.monitoring = object.monitoring;
 								// Add lines and re-save
 								response.$update(function(response) {
 										$scope.object.Status = 'SIGNED';

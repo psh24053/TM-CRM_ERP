@@ -302,7 +302,24 @@
 <!-- __ORDER__ -->
 <div ng-hide="!object._id || object._id !==object.order._id" class="row">
 	<div class="col-md-12">
-		<product-lines ng-model="object.lines" title="'@(ShoppingCard)'" for-sales="object.forSales" ng-disabled="editable" price-list="object.supplier.salesPurchases.priceList._id" warehouse="object.warehouse._id" ng-change="update()"></product-lines>
+		<tabset>
+		<tab>
+    	<tab-heading class="font-green"><i class="fa fa-opencart"></i> @(ShoppingCard)</tab-heading>
+			<product-lines class="font-green" ng-model="object.lines" for-sales="object.forSales" ng-disabled="editable" price-list="object.supplier.salesPurchases.priceList._id" warehouse="object.warehouse._id" ng-change="update()"></product-lines>
+		</tab>
+		<tab>
+			<tab-heading class="font-yellow-gold">@(orders:PurchasesSupplier)</tab-heading>
+			<product-lines class="font-yellow-gold" ng-model="object.orderRowSupplier"/>
+		</tab>
+		<tab>
+			<tab-heading class="font-red">@(orders:Subcontractor)</tab-heading>
+			<product-lines class="font-red" ng-model="object.orderRowSubcontractor"/>
+		</tab>
+		<tab>
+			<tab-heading class="font-blue-madison"><i class="fa fa-clock-o"></i> @(orders:Monitoring)</tab-heading>
+			<product-lines class="font-blue-madison" ng-model="object.monitoring" ng-template="/templates/core/monitoringLine.html"/>
+		</tab>
+		</tabset>
 	</div>
 </div>
 
