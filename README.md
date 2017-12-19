@@ -35,16 +35,16 @@ You can use it as a standalone application or as a web application to be able to
 ## Install
 
 Need :
- - install Node.js 6.x
+ - install Node.js 8.x
  - install MongoDB 3.2
 
 ```shell
-curl -sL https://deb.nodesource.com/setup_6.x | sudo bash -
+curl -sL https://deb.nodesource.com/setup_8.x | sudo bash -
 apt-get install nodejs
 ```
 
 ```shell
-git clone git@github.com:ToManage/framework.git
+git clone git@github.com:ToManage/TM-CRM_ERP.git
 ```
 
 ```shell
