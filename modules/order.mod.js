@@ -483,7 +483,7 @@ Total HT &
 \\endfirsthead
 
 \\hline
-\\multicolumn{7}{|l|}{\\small\\sl suite de la page pr\\'ec\\'edente}\\
+\\multicolumn{7}{|l|}{\\small\\sl suite de la page pr\\'ec\\'edente}\\\\
 \\hline
 \\multicolumn{1}{|c}{N} &
 \\multicolumn{1}{c|}{D\'esignation} &
@@ -622,6 +622,230 @@ Total HT &
 
 				},
 				"jsonLinesRefValue": function(self, options) {
+						/*Lines WITH Ref columns */
+
+						const values = options.value;
+
+						const stream = fs.createWriteStream(path.join(self.dirPath, 'linesRef.tex'), {
+								flags: 'a'
+						});
+
+						stream.write("\\vspace{-2em}\n");
+						if (self.handlers.pdfModel && self.handlers.pdfModel.value)
+								stream.write("\\vspace{{0}cm}\n".format(self.handlers.pdfModel.value.htop || 0));
+
+						stream.write(`
+					\\begin{flushright}
+					{\\flushright \\footnotesize \\textit{Montants exprim\\'es en \\euro}}
+					\\vspace{-1em}
+					\\end{flushright}`);
+
+						if (options.isDiscount)
+								//ligne de tableau avec \
+								stream.write('\\newcommand{\\specialcell}[2][c]{\\parbox[#1]{5.8cm}{#2}}\n');
+
+						else
+								stream.write('\\newcommand{\\specialcell}[2][c]{\\parbox[#1]{7.7cm}{#2}}\n');
+
+						stream.write(`
+\\setlength\\LTleft{0pt}
+\\setlength\\LTright{0pt}
+\\setlength\\LTpre{5pt}
+\\setlength\\LTpost{0pt}
+
+`);
+
+						if (options.isDiscount)
+								stream.write(`
+\\begin{longtable}{|r|r|p{6.0cm}@{\\extracolsep{1mm plus 1fil}}|c|r|r|r|r|}
+\\hline
+\\multicolumn{1}{|c}{N} &
+\\multicolumn{1}{c}{R\\'ef} &
+\\multicolumn{1}{c|}{D\\'esignation} &
+Qt\\'e &
+PU &
+Remise &
+Total HT &
+\\multicolumn{1}{c|}{TVA} \\\\
+\\hline \\hline
+\\endfirsthead
+
+\\hline
+\\multicolumn{8}{|l|}{\\small\\sl suite de la page pr\\'ec\\'edente}\\\\
+\\hline
+\\multicolumn{1}{|c}{N} &
+\\multicolumn{1}{c}{R\\'ef} &
+\\multicolumn{1}{c|}{D\\'esignation} &
+Qt\\'e &
+PU &
+Remise &
+Total HT &
+\\multicolumn{1}{c|}{TVA} \\\\ \\hline \\hline
+\\endhead
+
+\\hline \\multicolumn{8}{|r|}{{\\small\\sl suite sur la prochaine page}} \\\\ \\hline
+\\endfoot
+
+\\hline
+\\endlastfoot`);
+
+						else
+
+								stream.write(`
+\\begin{longtable}{|r|r|p{8cm}@{\\extracolsep{1mm plus 1fil}}|c|r|r|r|}
+\\hline
+\\multicolumn{1}{|c}{N} &
+\\multicolumn{1}{c}{R\\'ef} &
+\\multicolumn{1}{c|}{D\\'esignation} &
+Qt\\'e &
+PU &
+Total HT &
+\\multicolumn{1}{c|}{TVA} \\\\
+\\hline \\hline
+\\endfirsthead
+
+\\hline
+\\multicolumn{7}{|l|}{\\small\\sl suite de la page pr\\'ec\\'edente}\\\\
+\\hline
+\\multicolumn{1}{|c}{N} &
+\\multicolumn{1}{c}{R\\'ef} &
+\\multicolumn{1}{c|}{D\'esignation} &
+Qt\\'e &
+PU &
+Total HT &
+\\multicolumn{1}{c|}{TVA} \\\\ \\hline \\hline
+\\endhead
+
+\\hline \\multicolumn{7}{|r|}{{\\small\\sl suite sur la prochaine page}} \\\\ \\hline
+\\endfoot
+
+\\hline
+\\endlastfoot`);
+
+						for (let i = 0; i < values.length; i++) {
+								let v = values[i];
+
+
+								if (v.tophline) {
+										if (v.tophline == 2)
+												stream.write('\\hline\n');
+										stream.write('\\hline\n');
+								}
+
+								switch (v.type) {
+										case 'product':
+												stream.write("{{0}} &".format(self.formatter({
+														value: v.seq
+												})));
+
+												stream.write("{{0}} &".format(self.formatter({
+														value: v.ref
+												})));
+
+												if (!v.description)
+														stream.write("\\specialcell[t]{\\textbf{{0}\\\\}} &".format(self.formatter({
+																value: v.label
+														})));
+												else
+														stream.write("\\specialcell[t]{\\textbf{{0}}\\\\{1}\\\\} &".format(self.formatter({
+																value: v.label
+														}), self.formatter({
+																value: v.description,
+																type: 'area'
+														})));
+
+												stream.write("{1} {0} &".format(self.formatter({
+														value: v.unit
+												}), self.formatter({
+														value: v.qty,
+														type: 'number',
+														precision: 3
+												})));
+												stream.write("{0} &".format(self.formatter({
+														value: v.pu_ht,
+														type: 'number',
+														precision: 3
+												})));
+
+												if (options.isDiscount)
+														stream.write("{0} &".format(self.formatter({
+																value: v.discount,
+																type: 'percent',
+																precision: 1
+														})));
+
+												stream.write("{0} &".format(self.formatter({
+														value: v.total_ht,
+														type: 'number',
+														precision: 2
+												})));
+												stream.write("{0} \\\\[10pt]".format(self.formatter({
+														value: v.tva_tx
+												})));
+												break;
+
+										case 'comment':
+												stream.write('& &');
+
+												if (!v.description)
+														stream.write("\\specialcell[t]{\\textbf{{0}\\\\}} &".format(self.formatter({
+																value: v.label
+														})));
+												else
+														stream.write("\\specialcell[t]{\\textbf{{0}\\\\{1}\\\\}} &".format(self.formatter({
+																value: v.label
+														}), self.formatter({
+																value: v.description,
+																type: 'area'
+														})));
+
+												stream.write('& &');
+
+												if (options.isDiscount)
+														stream.write('&');
+
+												stream.write('&');
+												stream.write('\\tabularnewline');
+												break;
+
+										case 'subtotal':
+												stream.write('& &');
+
+												stream.write("\\specialcell[t]{\\textbf{\\textit{{0} : {1}}}} &".format(self.formatter({
+														value: v.label
+												}), self.formatter({
+														value: v.description,
+														type: 'string'
+												})));
+
+												stream.write('& &');
+												if (options.isDiscount)
+														stream.write('&');
+
+												stream.write("\\textbf{\\textit{{0}}} &".format(self.formatter({
+														value: v.total_ht,
+														type: 'number',
+														precision: 2
+												})));
+												stream.write('\\tabularnewline');
+								}
+
+								if (v.buttomhline) {
+										if (v.buttomhline == 2)
+												stream.write('\\hline\n');
+										stream.write('\\hline\n');
+								}
+
+						}
+
+						stream.write('\\end{longtable}');
+
+						if (self.handlers.pdfModel && self.handlers.pdfModel.value)
+								stream.write("\\vspace{{0}cm}\n".format(self.handlers.pdfModel.value.hbuttom || 0));
+
+						stream.end();
+
+						return "";
 
 				}
 		}

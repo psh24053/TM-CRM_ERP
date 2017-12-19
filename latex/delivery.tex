@@ -19,6 +19,8 @@
 \makeatother
 
 \newcommand{\FOOT}{--FOOT--}
+\include{json}
+\renewcommand{\HEAD}{\jsonTitleValue \  \jsonRefValue}
 
 \begin{document}
 
@@ -29,10 +31,10 @@
     \vspace{0pt}
    \raggedleft
 	%\begin{flushright}
-	\textcolor{violet}{\textsc{\Large Bon de livraison  \directlua{tex.print(json.ref.value)}}}\\
-	Date d'exp\'edition :  \directlua{tex.print(json.dateexp.value)}\\
-    {\small Date de commande : \textbf{ \directlua{tex.print(json.datec.value)}\\
-	Ref. commande : \directlua{tex.print(json.order.value)}\\}~\\
+	\textcolor{violet}{\textsc{\Large Bon de livraison  \jsonRefValue}}\\
+	Date d'exp\'edition :  \jsonDateexpValue\\\\
+    {\small Date de commande : \textbf{ \jsonDatecValue}\\
+	Ref. commande : \jsonOrderValue\\}~\\
 \end{tabular}
 
 %\vspace{-0.7cm}
@@ -48,28 +50,27 @@
 {\small Destinataire :}
 
 \begin{fminipage}
-\textbf{\large \directlua{tex.print(json.to.value.address.name)}}\\
-\directlua{tex.print(json.to.value.address.street)}\\
-\textsc{\directlua{tex.print(json.to.value.address.zip)} \directlua{tex.print(json.to.value.address.city)}}\\
+\textbf{\large \jsonToValueName}\\
+\jsonToValueAddressStreet\\
+\textsc{\jsonToValueAddressZip \ \jsonToValueAddressCity}\\
 \begin{minipage}{\textwidth}
 \flushright
-{\tiny \directlua{tex.print(json.to.value.code_client)}}
+{\tiny \jsonToValueCodeClient}
 \end{minipage}
 \end{fminipage}
 \end{minipage}
 
 \begin{minipage}[t]{0.60\textwidth}
 {\small \it Informations :}\\
-\directlua{tex.print(json.notes.value)} \\
+\jsonNotesValue \\
 \end{minipage}
 \hspace{1cm}
 \begin{minipage}[t]{0.32\textwidth}
 \begin{flushright}
-{\it Ref. commande client : \textbf{ \directlua{tex.print(json.ref_client.value)}}}\\
+{\it Ref. commande client : \textbf{ \jsonRefClientValue}}\\
 \vspace{1em}
-{\it Livraison : \directlua{tex.print(json.delivery_mode.value)}}\\
-{\it Date prévisionnelle : \textbf{\directlua{tex.print(json.dateexp.value)}}}
-\vspace{1em}
+{\it Livraison : \jsonDeliveryModeValue}
+{\it Date prévisionnelle : \textbf{\jsonDateexpValue}}
 \end{flushright}
 \end{minipage}
 
@@ -77,8 +78,12 @@
 
 \begin{minipage}[t]{0.50\textwidth}
 \begin{fminipage}
-\begin{tabular}{p{4cm} r l}
-\directlua{printTotal()}
+\begin{tabular}{|p{3cm} r|}
+
+\hline
+\input{totals}
+\hline
+
 \end{tabular}
 \end{fminipage}
 \end{minipage}
