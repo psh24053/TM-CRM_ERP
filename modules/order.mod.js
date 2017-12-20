@@ -584,7 +584,7 @@ Total HT &
 										case 'subtotal':
 												stream.write('&');
 
-												stream.write("\\specialcell[t]{\\textbf{\\textit{{0} : {1}}}\\\\} &".format(self.formatter({
+												stream.write("\\specialcell[t]{\\textbf{\\textit{\\textcolor{red}{{0} : {1}}}}\\\\} &".format(self.formatter({
 														value: v.label
 												}), self.formatter({
 														value: v.description,
@@ -595,7 +595,7 @@ Total HT &
 												if (options.isDiscount)
 														stream.write('&');
 
-												stream.write("\\textbf{\\textit{{0}}} &".format(self.formatter({
+												stream.write("\\textbf{\\textit{\\textcolor{red}{{0}}}} &".format(self.formatter({
 														value: v.total_ht,
 														type: 'number',
 														precision: 2
@@ -811,7 +811,7 @@ Total HT &
 										case 'subtotal':
 												stream.write('& &');
 
-												stream.write("\\specialcell[t]{\\textbf{\\textit{{0} : {1}}}\\\\} &".format(self.formatter({
+												stream.write("\\specialcell[t]{\\textbf{\\textit{\\textcolor{red}{{0} : {1}}}}\\\\} &".format(self.formatter({
 														value: v.label
 												}), self.formatter({
 														value: v.description,
@@ -822,7 +822,7 @@ Total HT &
 												if (options.isDiscount)
 														stream.write('&');
 
-												stream.write("\\textbf{\\textit{{0}}} &".format(self.formatter({
+												stream.write("\\textbf{\\textit{\\textcolor{red}{{0}}}} &".format(self.formatter({
 														value: v.total_ht,
 														type: 'number',
 														precision: 2
