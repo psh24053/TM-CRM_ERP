@@ -516,7 +516,7 @@ Total HT &
 														value: v.seq
 												})));
 												if (!v.description)
-														stream.write("\\specialcell[t]{\\textbf{\underline{{0}}\\\\}} &".format(self.formatter({
+														stream.write("\\specialcell[t]{\\textbf{\\underline{{0}}\\\\}} &".format(self.formatter({
 																value: v.label
 														})));
 												else
