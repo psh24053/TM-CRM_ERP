@@ -408,7 +408,7 @@ exports.latex = {
 								flags: 'a'
 						});
 
-						stream.write("\\vspace{-2em}\n");
+						//stream.write("\\vspace{-2em}\n");
 						if (self.handlers.pdfModel && self.handlers.pdfModel.value)
 								stream.write("\\vspace{{0}cm}\n".format(self.handlers.pdfModel.value.htop || 0));
 
@@ -632,7 +632,7 @@ Total HT &
 								flags: 'a'
 						});
 
-						stream.write("\\vspace{-2em}\n");
+						//stream.write("\\vspace{-2em}\n");
 						if (self.handlers.pdfModel && self.handlers.pdfModel.value)
 								stream.write("\\vspace{{0}cm}\n".format(self.handlers.pdfModel.value.htop || 0));
 
@@ -783,7 +783,7 @@ Total HT &
 														type: 'number',
 														precision: 2
 												})));
-												stream.write("{0} \\\\[10pt]".format(self.formatter({
+												stream.write("{0} \\\\[10pt]\n".format(self.formatter({
 														value: v.tva_tx
 												})));
 												break;
@@ -809,7 +809,7 @@ Total HT &
 														stream.write('&');
 
 												stream.write('&');
-												stream.write('\\tabularnewline');
+												stream.write('\\tabularnewline\n');
 												break;
 
 										case 'subtotal':
@@ -831,7 +831,7 @@ Total HT &
 														type: 'number',
 														precision: 2
 												})));
-												stream.write('\\tabularnewline');
+												stream.write('\\tabularnewline\n');
 								}
 
 								if (v.buttomhline) {
