@@ -1209,6 +1209,7 @@ baseSchema.statics.generatePdfById = function(id, model, callback) {
 																		});
 																		break;
 																default:
+																console.log(doc.lines[i]);
 																		tabLines.push({
 																				type: 'product',
 																				seq: doc.lines[i].numLine,
@@ -1219,7 +1220,7 @@ baseSchema.statics.generatePdfById = function(id, model, callback) {
 																				pu_ht: doc.lines[i].pu_ht,
 																				discount: doc.lines[i].discount,
 																				qty: doc.lines[i].qty,
-																				unit: doc.lines[i].product.unit || "U",
+																				unit: doc.lines[i].product.units || "U",
 																				total_ht: doc.lines[i].total_ht
 																		});
 														}
