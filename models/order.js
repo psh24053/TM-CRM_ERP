@@ -5090,7 +5090,7 @@ F.on('order:update', function(data, Model) {
 						Model.findOne({
 								_id: data.order._id,
 								Status: {
-										$nin: ["DRAFT", "CANCELLED"]
+										$nin: ["CANCELLED"]
 								}
 						}, "pdfs ref pdfModel", function(err, doc) {
 								if (err)
@@ -5109,9 +5109,8 @@ F.on('order:update', function(data, Model) {
 										return pCb();
 
 								async.each(doc.pdfs, function(elem, eCb) {
-										if (elem.modelPdf.toString() == doc.pdfModel.modelId.toString()) {
+										if (elem.modelPdf.toString() == doc.pdfModel.modelId.toString())
 												return eCb(); // already execute
-										}
 
 										Model.generatePdfById(data.order._id, elem.modelPdf, eCb);
 								}, function(err) {

@@ -877,5 +877,7 @@
   "TimeQtyProduction": "Temps productif (H)",
   "TimeQtyNotProduction": "Temps dépl. prépa. (H)",
   "Lunch": "Repas",
-  "RepartitionTime": "Répartition"
+  "RepartitionTime": "Répartition",
+  "PDFHtop": "Espace au dessus (cm)",
+  "PDFHbuttom": "Espace en dessous (cm)"
 }
