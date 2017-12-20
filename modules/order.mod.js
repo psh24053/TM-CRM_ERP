@@ -586,10 +586,10 @@ Total HT &
 												break;
 
 										case 'subtotal':
-										if (options.isDiscount)
-												stream.write('\\cline{2-8}\n');
-										else
-												stream.write('\\cline{2-7}\n');
+												if (options.isDiscount)
+														stream.write('\\cline{2-8}\n');
+												else
+														stream.write('\\cline{2-7}\n');
 
 												stream.write('&');
 

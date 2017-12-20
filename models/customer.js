@@ -641,6 +641,8 @@ customerSchema.statics.query = function(options, callback) {
 		const limit = options.limit;
 		const skip = options.skip;
 
+		//console.log(data);
+
 		const FilterMapper = MODULE('helper').filterMapper;
 		var filterMapper = new FilterMapper();
 

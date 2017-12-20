@@ -43,18 +43,6 @@ MetronicApp.controller('SocieteController', ['$scope', '$rootScope', '$http', '$
 						},
 						createdAt: {
 								value: []
-						},
-						isProspect: {
-								value: [true, true]
-						},
-						isCustomer: {
-								value: [true, true]
-						},
-						isSupplier: {
-								value: [true, true]
-						},
-						isSubcontractor: {
-								value: [true, true]
 						}
 				};
 
@@ -75,6 +63,24 @@ MetronicApp.controller('SocieteController', ['$scope', '$rootScope', '$http', '$
 
 				$scope.forSales = $rootScope.$stateParams.forSales == 0 ? 0 : 1;
 				$scope.type = $rootScope.$stateParams.type;
+
+				if ($scope.type != 'Person') {
+						if ($scope.forSales) {
+								$scope.search.isProspect = {
+										value: [true, true]
+								};
+								$scope.search.isCustomer = {
+										value: [true, true]
+								};
+						} else {
+								$scope.search.isSupplier = {
+										value: [true, true]
+								};
+								$scope.search.isSubcontractor = {
+										value: [true, true]
+								};
+						}
+				}
 
 				$scope.validSiret = false;
 				$scope.societe = {
