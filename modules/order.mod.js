@@ -359,7 +359,6 @@ exports.pdfModels = [{
 				}
 		]
 }];
-
 exports.latex = {
 		"formatters": {
 				"jsonDatecValue": 'dateShort',

@@ -104,8 +104,8 @@ exports.install = function() {
 						query.entity = self.body.entity;
 
 				if (self.query.company)
-						if (self.query.company !== 'null')
-								query.company = self.query.company;
+						if(self.query.company !== 'null')
+						query.company =  self.query.company;
 
 
 				if (self.query.type)
@@ -2013,8 +2013,8 @@ Object.prototype = {
 
 		show: function(id) {
 				var self = this;
-				if (!self.user.rights.societe.read)
-						return self.throw403(); // access forbidden
+				//if (!self.user.rights.societe.read)
+				//	return self.throw403(); // access forbidden
 
 				return societe(id, function(societe) {
 						self.json(societe);
@@ -2133,6 +2133,8 @@ Object.prototype = {
 		update: function(id) {
 				var self = this;
 				var SocieteModel = MODEL('Customers').Schema;
+				if (!self.user.rights.societe.write)
+					return self.throw403(); // access forbidden
 
 				societe(id, function(societe) {
 
