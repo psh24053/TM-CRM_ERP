@@ -348,12 +348,12 @@ exports.sumTotal = function(lines, shipping, discount, societeId, callback) {
 								});
 						},
 						function(VATIsUsed, cb) {
-								if (!VATIsUsed){
-									lines = _.map(lines, function(elem) {
-											elem.total_taxes = [];
-											return elem;
-									});
-									return cb(null, VATIsUsed);
+								if (!VATIsUsed) {
+										lines = _.map(lines, function(elem) {
+												elem.total_taxes = [];
+												return elem;
+										});
+										return cb(null, VATIsUsed);
 								}
 
 
