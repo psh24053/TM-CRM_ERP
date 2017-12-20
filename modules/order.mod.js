@@ -520,7 +520,7 @@ Total HT &
 																value: v.label
 														})));
 												else
-														stream.write("\\specialcell[t]{\\textbf{{0}}\\\\{1}\\\\} &".format(self.formatter({
+														stream.write("\\specialcell[t]{\\textbf{\\underline{{0}}}\\\\{1}\\\\} &".format(self.formatter({
 																value: v.label
 														}), self.formatter({
 																value: v.description,
