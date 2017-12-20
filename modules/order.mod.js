@@ -423,7 +423,7 @@ exports.latex = {
 								stream.write('\\newcommand{\\specialcell}[2][c]{\\parbox[#1]{7.2cm}{#2}}\n');
 
 						else
-								stream.write('\\newcommand{\\specialcell}[2][c]{\\parbox[#1]{9.7cm}{#2}}\n');
+								stream.write('\\newcommand{\\specialcell}[2][c]{\\parbox[#1]{8.7cm}{#2}}\n');
 
 						stream.write(`
 \\setlength\\LTleft{0pt}
@@ -471,7 +471,7 @@ Total HT &
 						else
 
 								stream.write(`
-\\begin{longtable}{|r|p{9.5cm}@{\\extracolsep{1mm plus 1fil}}|l|c|r|r|r|}
+\\begin{longtable}{|r|p{9cm}@{\\extracolsep{1mm plus 1fil}}|l|c|r|r|r|}
 \\hline
 N &
 \\multicolumn{1}{c|}{D\\'esignation} &
