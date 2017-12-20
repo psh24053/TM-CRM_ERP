@@ -423,7 +423,7 @@ exports.latex = {
 								stream.write('\\newcommand{\\specialcell}[2][c]{\\parbox[#1]{7.2cm}{#2}}\n');
 
 						else
-								stream.write('\\newcommand{\\specialcell}[2][c]{\\parbox[#1]{9.2cm}{#2}}\n');
+								stream.write('\\newcommand{\\specialcell}[2][c]{\\parbox[#1]{9.7cm}{#2}}\n');
 
 						stream.write(`
 \\setlength\\LTleft{0pt}
