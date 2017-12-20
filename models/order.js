@@ -1196,6 +1196,7 @@ baseSchema.statics.generatePdfById = function(id, model, callback) {
 																		tabLines.push({
 																				type: 'subtotal',
 																				label: "Sous-total",
+																				description: doc.lines[i].description,
 																				total_ht: doc.lines[i].total_ht
 																				//buttomhline: 1
 																		});

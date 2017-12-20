@@ -3,7 +3,10 @@
 </td>
 
 <td colspan="5">
-	@(SubTotal)
+	<div class="form-group form-md-line-input margin-top-10">
+		<input type="text" class="form-control input-sm" id="refSubTotal" ng-model="line.description" placeholder="option 1" ng-disabled="!edit" maxlength="30">
+		<label for="refSubTotal">@(SubTotal)</label>
+	</div>
 </td>
 
 <td ng-if="line.type == 'SUBTOTAL'">
