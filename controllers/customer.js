@@ -2013,13 +2013,12 @@ Object.prototype = {
 
 		show: function(id) {
 				var self = this;
-				//if (self.user.rights.societe.read)
+				if (self.user.rights.societe.read)
+					return self.throw403(); // access forbidden
+
 				return societe(id, function(societe) {
 						self.json(societe);
 				});
-
-				//return self.throw403(); // access forbidden
-
 		},
 		count: function() {
 				var self = this;
