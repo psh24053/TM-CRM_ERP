@@ -104,8 +104,8 @@ exports.install = function() {
 						query.entity = self.body.entity;
 
 				if (self.query.company)
-						if(self.query.company !== 'null')
-						query.company =  self.query.company;
+						if (self.query.company !== 'null')
+								query.company = self.query.company;
 
 
 				if (self.query.type)
@@ -2134,7 +2134,7 @@ Object.prototype = {
 				var self = this;
 				var SocieteModel = MODEL('Customers').Schema;
 				if (!self.user.rights.societe.write)
-					return self.throw403(); // access forbidden
+						return self.throw403(); // access forbidden
 
 				societe(id, function(societe) {
 

@@ -394,7 +394,7 @@
 							<div class="form-group form-md-line-input">
 								<div class="input-group input-group-sm">
 									<div class="input-group-control">
-										<select class="form-control" id="pdfModel" ng-model="object.pdfModel.modelId" ng-options="model._id as model.langs[_language].description for model in $dict.module.pdfModels"></select>
+										<select class="form-control" id="pdfModel" ng-model="object.pdfModel.modelId" ng-options="model._id as model.langs[_language].description for model in $dict.module.pdfModels | filter : {forSales:object.forSales}"></select>
 										<label for="pdfModel"></i> @(orders:PDFModels)</label>
 									</div>
 									<span class="input-group-btn btn-right">

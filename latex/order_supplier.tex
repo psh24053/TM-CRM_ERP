@@ -1,4 +1,36 @@
+\documentclass[a4paper, oneside, 10pt, french]{article}
+
+\usepackage[a4paper]{geometry}
+\geometry{top=1.5cm, bottom=1cm, left=1cm, right=1cm,foot=1cm,head=2cm,headsep=.5cm,includefoot}
+
+\usepackage{tm_article}
+\usepackage{tabularx, longtable, multirow, rotating}
+
+\definecolor{violet}{rgb}{0.0,0.0,0.0}
+\definecolor{bleu}{rgb}{0.01,0.28,0.58}
+\newcommand{\vhline}{\arrayrulecolor{violet}\hline\arrayrulecolor{black}}
+\newcommand{\ghline}{\arrayrulecolor{gray}\hline\arrayrulecolor{black}}
+\newcommand{\bhline}{\arrayrulecolor{bleu}\hline\arrayrulecolor{black}}
+\makeatletter
+\renewcommand{\section}{\@startsection {section}{1}{\z@}%
+             {-0ex \@plus -1ex \@minus -.2ex}%
+             {0.01ex \@plus.1ex}%
+             {\footnotesize\sffamily}}
+\makeatother
+
 \newcommand{\FOOT}{--FOOT--}
+\include{json}
+\renewcommand{\HEAD}{\jsonTitleValue \  \jsonRefValue}
+
+\newif\ifdiscount
+
+\ifdefined\jsonIsDiscountValue
+\discounttrue
+\else
+\discountfalse
+\fi
+
+\begin{document}
 	
 \begin{tabular}{p{9cm} p{8cm}}
     \vspace{0pt} 
@@ -7,10 +39,10 @@
     \vspace{0pt}
    \raggedleft
 	%\begin{flushright}
-	\textcolor{violet}{\textsc{\Large --TITLE-- --NUM--}}\\
-	Date de commande : --DATEC--\\
+	\textcolor{violet}{\textsc{\Large \jsonTitleValue \  \jsonRefValue}}\\
+	Date de la commande : \jsonDatecValue\\
 	%{\small Date d'expédition : \textbf{--DATEEXP--}\\
-	Ref. commande fournisseur : --REFCLIENT--\\
+	Ref. commande fournisseur : \jsonRefClientValue\\
 	SN : --SN--\\
 	%TVA Intra. du  client : --DESTINATAIRE.TVA--\\}~\\
 \end{tabular}
@@ -24,9 +56,9 @@
 \end{fminipage}
 {\small Livraison :}\\
 \begin{fminipage}
-\textbf{\large --SHIPPING.NAME--}\\
---SHIPPING.ADDRESS--\\
-\textsc{--SHIPPING.ZIP-- --SHIPPING.TOWN--}\\
+\textbf{\large \jsonShippingValueName}\\
+\jsonShippingValueStreet\\ 
+\textsc{\jsonShippingValueZip \ \jsonShippingValueCity}\\
 \end{fminipage}
 \end{minipage}
 \hspace{1cm}
@@ -34,42 +66,41 @@
 {\small Destinataire :}
 
 \begin{fminipage}
-\textbf{\large --DESTINATAIRE.NAME--}\\
---DESTINATAIRE.ADDRESS--\\
-\textsc{--DESTINATAIRE.ZIP-- --DESTINATAIRE.TOWN--}\\
+\textbf{\large \jsonToValueName}\\
+\jsonToValueAddressStreet\\
+\textsc{\jsonToValueAddressZip \ \jsonToValueAddressCity}\\
 \begin{minipage}{\textwidth}
 \flushright
-{\tiny --CODECLIENT--}
+{\tiny \jsonToValueCodeClient}
 \end{minipage}
 \end{fminipage}
 \end{minipage}
 
-\begin{minipage}{\textwidth}
-\flushright 
-{\footnotesize \textit{Montants exprimés en €}}
-\end{minipage}\\
+\input{linesRef}
 
---TABULAR--
-
-\begin{minipage}[t]{0.40\textwidth}
-Notes : --NOTE--
+\fbox{
+\begin{minipage}[t]{0.45\textwidth}
+Notes : \jsonNotesValue \\
 \end{minipage}
-\hspace{1cm}
-\begin{minipage}[t]{0.50\textwidth}
+}
+\hspace{3.2cm}
+\begin{minipage}[t]{6cm}
+\vspace{-10pt} %fix error space with no text in minipage
 \begin{flushright}
-\begin{tabular}{p{4.5cm} r}
---TOTAL-- 
-\end{tabular} 
+
+\begin{tabular}{|p{3cm} r|}
+
+\hline
+\input{totals}
+\hline
+
+\end{tabular}
+
 \end{flushright}
-%\begin{flushright}
-%\begin{footnotesize}
-%Versements déjà effectués :
-% \begin{tabular}{p{1.8cm} c p{1.8cm} c}
-%Règlement & Montant & Type & Numéro \\ 
-%\ghline 
-% --DATEACPTE--& --ACPTE-- & --MODEREG-- & --NUMP-- \\ 
-%\ghline 
-%\end{tabular}
-% \end{footnotesize} 
-%\end{flushright}
+
+%\vspace{3em}
+
+
 \end{minipage}
+
+\end{document}

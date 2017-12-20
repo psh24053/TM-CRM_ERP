@@ -22,7 +22,7 @@ International Registered Trademark & Property of ToManage SAS
 
 
 exports.name = 'offer';
-exports.version = 1.012;
+exports.version = 1.015;
 exports.enabled = true;
 exports.description = "Gestion des devis et demandes d'achats";
 exports.rights = [{
@@ -101,6 +101,15 @@ exports.pdfModels = [{
 		langs: [{
 				title: "Devis",
 				description: "Devis (default)"
+		}]
+}, {
+		code: 'OFFERF',
+		module: 'offer',
+		forSales: false,
+		latex: 'order_supplier.tex', //latex main file in latex directory
+		langs: [{
+				title: "AO",
+				description: "Demande de prix (default)"
 		}]
 }];
 

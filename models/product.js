@@ -1989,7 +1989,7 @@ productSchema.virtual('_units')
 
 				var units = this.units;
 
-				if (units && dict.fk_units.values[units].label) {
+				if (units && dict.fk_units.values[units] && dict.fk_units.values[units].label) {
 						//console.log(this);
 						res.id = units;
 						res.name = i18n.t("products:" + dict.fk_units.values[units].label);

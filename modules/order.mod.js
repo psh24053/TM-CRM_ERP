@@ -27,7 +27,7 @@ const moment = require('moment'),
 		path = require("path");
 
 exports.name = 'order';
-exports.version = 1.022;
+exports.version = 1.025;
 exports.enabled = true;
 
 exports.csv = {
@@ -330,35 +330,35 @@ exports.filters = {
 };
 
 exports.pdfModels = [{
-		code: 'ORDER',
-		module: 'order',
-		forSales: true,
-		latex: 'order.tex', //latex main file in latex directory
-		langs: [{
-				title: 'Commande',
-				description: "BdC (default)"
-		}]
-}, {
-		code: 'ORDER_PROF',
-		module: 'order',
-		forSales: true,
-		latex: 'order.tex', //latex main file in latex directory
-		langs: [{
+				code: 'ORDER',
+				module: 'order',
+				forSales: true,
+				latex: 'order.tex', //latex main file in latex directory
+				langs: [{
+						title: 'Commande',
+						description: "BdC (default)"
+				}]
+		}, {
+				code: 'ORDER_PROF',
+				module: 'order',
+				forSales: true,
+				latex: 'order.tex', //latex main file in latex directory
+				langs: [{
 						title: 'Facture pro forma',
 						description: "Facture pro forma"
-				},
-				{
-						code: 'ORDERF',
-						module: 'order',
-						forSales: false,
-						latex: 'order_supplier.tex', //latex main file in latex directory
-						langs: [{
-								title: 'Commande fournisseur',
-								description: "BdC_F (default)"
-						}]
-				}
-		]
-}];
+				}]
+		},
+		{
+				code: 'ORDERF',
+				module: 'order',
+				forSales: false,
+				latex: 'order_supplier.tex', //latex main file in latex directory
+				langs: [{
+						title: 'Commande fournisseur',
+						description: "BdC_F (default)"
+				}]
+		}
+];
 exports.latex = {
 		"formatters": {
 				"jsonDatecValue": 'dateShort',

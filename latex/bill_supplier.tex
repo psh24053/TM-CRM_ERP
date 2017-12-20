@@ -1,3 +1,36 @@
+\documentclass[a4paper, oneside, 10pt, french]{article}
+
+\usepackage[a4paper]{geometry}
+\geometry{top=1.5cm, bottom=1cm, left=1cm, right=1cm,foot=1cm,head=2cm,headsep=.5cm,includefoot}
+
+\usepackage{tm_article}
+\usepackage{tabularx, longtable, multirow, rotating}
+
+\definecolor{violet}{rgb}{0.0,0.0,0.0}
+\definecolor{bleu}{rgb}{0.01,0.28,0.58}
+\newcommand{\vhline}{\arrayrulecolor{violet}\hline\arrayrulecolor{black}}
+\newcommand{\ghline}{\arrayrulecolor{gray}\hline\arrayrulecolor{black}}
+\newcommand{\bhline}{\arrayrulecolor{bleu}\hline\arrayrulecolor{black}}
+\makeatletter
+\renewcommand{\section}{\@startsection {section}{1}{\z@}%
+             {-0ex \@plus -1ex \@minus -.2ex}%
+             {0.01ex \@plus.1ex}%
+             {\footnotesize\sffamily}}
+\makeatother
+
+\newcommand{\FOOT}{--FOOT--}
+\include{json}
+\renewcommand{\HEAD}{\jsonTitleValue \  \jsonRefValue}
+
+\newif\ifdiscount
+
+\ifdefined\jsonIsDiscountValue
+\discounttrue
+\else
+\discountfalse
+\fi
+
+\begin{document}
 
 \begin{tabular}{p{9cm} p{8cm}}
     \vspace{0pt} 
@@ -6,23 +39,23 @@
     \vspace{0pt}
    \raggedleft
 	%\begin{flushright}
-	\textcolor{violet}{\textsc{\Large Facture fournisseur --NUM--}}\\
-	Date de facture : --DATEC--\\
-	{\small Date d'échéance : \textbf{--DATEECH--}\\
-	Ref. commande : --REFSUPPLIER--\\}~\\
+	\textcolor{violet}{\textsc{\Large Facture fournisseur \jsonRefValue}}\\
+	Date de facture : \jsonDatecValue\\
+	{\small Date d'échéance : \textbf{\jsonDateechValue}\\
+	Ref. commande : \jsonRefClientValue}~\\
 \end{tabular}
 
-\vspace{-0.7cm}
+%\vspace{-0.7cm}
 
 \begin{minipage}[t]{0.40\textwidth}
 {\small Emetteur :}\\
 \begin{fminipage}
-\textbf{\large --DESTINATAIRE.NAME--}\\
---DESTINATAIRE.ADDRESS--\\
-\textsc{--DESTINATAIRE.ZIP-- --DESTINATAIRE.TOWN--}\\
+\textbf{\large \jsonToValueName}\\
+\jsonToValueAddressStreet\\
+\textsc{\jsonToValueAddressZip \ \jsonToValueAddressCity}\\
 \begin{minipage}{\textwidth}
 \flushright
-{\tiny --CODECLIENT--}
+{\tiny \jsonToValueCodeClient}
 \end{minipage}
 \end{fminipage}
 \end{minipage}
@@ -34,7 +67,7 @@
 --MYSOC--\\
 \begin{minipage}{\textwidth}
 \flushright
-{\tiny --CODECLIENT--}
+{\tiny \jsonToValueCodeClient}
 \end{minipage}
 \end{fminipage}
 \end{minipage}
@@ -46,17 +79,15 @@
 \hspace{1cm}
 \begin{minipage}[t]{0.32\textwidth}
 \begin{flushright}
-{\it Date d'échéance : \textbf{--DATEECH--}\\
-\vspace{1em}
-{\footnotesize \textit{Montants exprimés en €}}
+{\it Date d'échéance : \textbf{\jsonDateechValue}\\
 \end{flushright}
 \end{minipage}
 
---TABULAR--
+\input{linesRef}
 
 \begin{minipage}[t]{0.40\textwidth}
 \begin{fminipage}
-{\footnotesize \textbf{Conditions de règlement :} --REGLEMENT--}\\
+{\footnotesize \textbf{Conditions de règlement :} \jsonReglementValue\\
 %{\footnotesize Règlement TTC par \textbf{--PAID--} --BK--}\\
 %{\it \footnotesize --VATMODE--}
 \end{fminipage}
@@ -64,9 +95,15 @@
 \hspace{1cm}
 \begin{minipage}[t]{0.50\textwidth}
 \begin{flushright}
-\begin{tabular}{p{4.5cm} r}
---TOTAL--
-\rowcolor{violet}\textcolor{white}{NET à payer} &\textcolor{white}{--APAYER--} \\ 
+\begin{tabular}{|p{4.5cm} r|}
+
+\hline
+\input{totals}
+\hline
+\hline
+%\rowcolor{violet}\textcolor{white}{NET à payer} &\textcolor{white}{--APAYER--} \\ 
+NET à payer & \jsonAPAYERValue \\ 
+\hline
 \end{tabular} 
 \end{flushright}
 %\begin{flushright}
@@ -82,3 +119,5 @@
 %\end{flushright}
 \end{minipage}
 
+
+\end{document}
