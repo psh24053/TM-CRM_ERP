@@ -1209,7 +1209,7 @@ baseSchema.statics.generatePdfById = function(id, model, callback) {
 																		});
 																		break;
 																default:
-																console.log(doc.lines[i]);
+																//console.log(doc.lines[i]);
 																		tabLines.push({
 																				type: 'product',
 																				seq: doc.lines[i].numLine,
