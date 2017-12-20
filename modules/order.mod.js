@@ -486,7 +486,7 @@ Total HT &
 \\multicolumn{7}{|l|}{\\small\\sl suite de la page pr\\'ec\\'edente}\\\\
 \\hline
 \\multicolumn{1}{|c}{N} &
-\\multicolumn{1}{c|}{D\'esignation} &
+\\multicolumn{1}{c|}{D\\'esignation} &
 Un &
 Qt\\'e &
 PU &
@@ -516,7 +516,7 @@ Total HT &
 														value: v.seq
 												})));
 												if (!v.description)
-														stream.write("\\specialcell[t]{\\textbf{{0}\\\\}} &".format(self.formatter({
+														stream.write("\\specialcell[t]{\\textbf{\underline{{0}}\\\\}} &".format(self.formatter({
 																value: v.label
 														})));
 												else
