@@ -437,10 +437,10 @@ exports.latex = {
 								stream.write(`
 \\begin{longtable}{|r|p{8.0cm}@{\\extracolsep{1mm plus 1fil}}|l|c|r|r|r|r|}
 \\hline
-\\multicolumn{1}{|c}{N} &
+N &
 \\multicolumn{1}{c|}{D\\'esignation} &
-Un &
 Qt\\'e &
+Un &
 PU &
 Remise &
 Total HT &
@@ -451,10 +451,10 @@ Total HT &
 \\hline
 \\multicolumn{8}{|l|}{\\small\\sl suite de la page pr\\'ec\\'edente}\\\\
 \\hline
-\\multicolumn{1}{|c}{N} &
+N &
 \\multicolumn{1}{c|}{D\\'esignation} &
-Un &
 Qt\\'e &
+Un &
 PU &
 Remise &
 Total HT &
@@ -472,10 +472,10 @@ Total HT &
 								stream.write(`
 \\begin{longtable}{|r|p{10cm}@{\\extracolsep{1mm plus 1fil}}|l|c|r|r|r|}
 \\hline
-\\multicolumn{1}{|c}{N} &
+N &
 \\multicolumn{1}{c|}{D\\'esignation} &
-Un &
 Qt\\'e &
+Un &
 PU &
 Total HT &
 \\multicolumn{1}{c|}{TVA} \\\\
@@ -485,10 +485,10 @@ Total HT &
 \\hline
 \\multicolumn{7}{|l|}{\\small\\sl suite de la page pr\\'ec\\'edente}\\\\
 \\hline
-\\multicolumn{1}{|c}{N} &
+N &
 \\multicolumn{1}{c|}{D\\'esignation} &
-Un &
 Qt\\'e &
+Un &
 PU &
 Total HT &
 \\multicolumn{1}{c|}{TVA} \\\\ \\hline \\hline
@@ -528,11 +528,11 @@ Total HT &
 														})));
 
 												stream.write("{0} & {1} &".format(self.formatter({
-														value: v.unit
-												}), self.formatter({
 														value: v.qty,
 														type: 'number',
 														precision: 3
+												}), self.formatter({
+														value: v.unit
 												})));
 												stream.write("{0} &".format(self.formatter({
 														value: v.pu_ht,
