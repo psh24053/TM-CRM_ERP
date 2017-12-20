@@ -584,7 +584,7 @@ Total HT &
 										case 'subtotal':
 												stream.write('&');
 
-												stream.write("\\specialcell[t]{\\textbf{\\textit{{0} : {1}}}} &".format(self.formatter({
+												stream.write("\\specialcell[t]{\\textbf{\\textit{{0} : {1}}}\\\\} &".format(self.formatter({
 														value: v.label
 												}), self.formatter({
 														value: v.description,
@@ -811,7 +811,7 @@ Total HT &
 										case 'subtotal':
 												stream.write('& &');
 
-												stream.write("\\specialcell[t]{\\textbf{\\textit{{0} : {1}}}} &".format(self.formatter({
+												stream.write("\\specialcell[t]{\\textbf{\\textit{{0} : {1}}}\\\\} &".format(self.formatter({
 														value: v.label
 												}), self.formatter({
 														value: v.description,

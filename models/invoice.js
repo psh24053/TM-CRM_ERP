@@ -1354,8 +1354,8 @@ billSchema.statics.generatePdfById = function(id, model, callback) {
 																		tabLines.push({
 																				type: 'subtotal',
 																				label: "Sous-total",
-																				total_ht: doc.lines[i].total_ht,
-																				buttomhline: 1
+																				total_ht: doc.lines[i].total_ht
+																				//buttomhline: 1
 																		});
 																		break;
 																case 'COMMENT':
