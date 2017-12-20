@@ -195,7 +195,7 @@ function Template(arg, entity, options) {
 		// the constructor now works with a stream, too
 
 
-		if (options.module)
+		if (options.module && MODULE(options.module))
 				this.module = MODULE(options.module).latex;
 		else
 				this.module = MODULE('order').latex;
