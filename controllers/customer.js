@@ -2134,6 +2134,9 @@ Object.prototype = {
 				var self = this;
 				var SocieteModel = MODEL('Customers').Schema;
 
+				if (!self.user.rights.societe.write)
+					return self.throw403(); // access forbidden
+
 				societe(id, function(societe) {
 
 						societe = _.extend(societe, self.body);

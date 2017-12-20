@@ -24,7 +24,7 @@ International Registered Trademark & Property of ToManage SAS
 const moment = require('moment');
 
 exports.name = 'order';
-exports.version = 1.01;
+exports.version = 1.02;
 exports.enabled = true;
 
 exports.csv = {
