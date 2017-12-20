@@ -36,6 +36,7 @@ MetronicApp.directive('productLines', ['$http', '$modal', '$timeout',
 								warehouse: "=",
 								ngTemplate: "@",
 								editable: '=ngDisabled',
+								type: '@',
 								ngChange: '&'
 						},
 						templateUrl: function(el, attr) {
@@ -48,7 +49,7 @@ MetronicApp.directive('productLines', ['$http', '$modal', '$timeout',
 						},
 						link: function(scope, elem, attrs, ngModel) {
 
-								//console.log(scope);
+								console.log(scope);
 
 								scope.edit = false;
 

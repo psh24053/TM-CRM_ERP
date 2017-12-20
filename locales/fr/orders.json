@@ -387,7 +387,7 @@
   "MenuOrdersToBill": "Commandes délivrées",
   "MenuOrdersToBill2": "Commandes à facturer",
   "MenuToValid": "A valider",
-  "Monitoring": "Suivi d'heures",
+  "Monitoring": "Suivi des heures",
   "NameAndSignature": "Nom et Signature :",
   "NbOfOrders": "Nombre de commandes",
   "NbOfPayments": "Nb de paiements",
@@ -674,6 +674,7 @@
   "StillToBeDisbursed": "Reste à décaisser",
   "StockReturn": "Retours stock",
   "Subcontractor": "Sous-traitant",
+  "Subcontractors": "Sous-traitants",
   "SubcontractorDetails": "Détails soustraitance",
   "SupplierBill": "Facture fournisseur",
   "SupplierBills": "Factures fournisseurs",
@@ -872,5 +873,9 @@
   "Setting": "Configuration",
   "VATRate": "TVA par défaut",
   "StatusBilling": "Etat Facturation",
-  "Average": "Panier moyen"
+  "Average": "Panier moyen",
+  "TimeQtyProduction": "Temps productif (H)",
+  "TimeQtyNotProduction": "Temps dépl. prépa. (H)",
+  "Lunch": "Repas",
+  "RepartitionTime": "Répartition"
 }

@@ -541,8 +541,8 @@ const baseSchema = new Schema({
 		//sequence: Number,
 		//name: String
 		type: {
-			type: String,
-			default: 'customer'
+				type: String,
+				default: 'customer'
 		},
 		oldId: String
 }, options);
@@ -587,19 +587,19 @@ var orderCustomerSchema = new Schema({
 });
 
 var monitoringSchema = new Schema({
-	order: {
-		type: ObjectId,
-		ref: 'order'
-	},
-	employee: {
-		type: ObjectId,
-		ref: 'Employees'
-	},
-	date: Date,
-	hours: {
-		nonProductive: Number,
-		productive: Number
-	}
+		order: {
+				type: ObjectId,
+				ref: 'order'
+		},
+		employee: {
+				type: ObjectId,
+				ref: 'Employees'
+		},
+		date: Date,
+		hours: {
+				nonProductive: Number,
+				productive: Number
+		}
 });
 
 baseSchema.statics.query = function(options, callback) {

@@ -127,6 +127,37 @@ var OrderRowSchema = mongoose.Schema({
 
 OrderRowSchema.plugin(timestamps);
 
+const TimeEmployeeSchema = new Schema({
+
+		// qty is the Sum TimeQtyProduction + TimeQtyNotProduction
+		qtyTimeProduction: {
+				type: Number,
+				default: 0
+		},
+		qtyTimeNotProduction: {
+				type: Number,
+				default: 0
+		},
+
+		datec: {
+				type: Date,
+				default: Date.now
+		},
+
+		lunch: [String], //"morning","night",...
+
+		repartitionTime: [{
+				_id: false,
+				department: {
+						type: ObjectId,
+						ref: 'Department'
+				},
+				value: {
+						type: Number
+				} // Qty time in hours
+		}]
+});
+
 OrderRowSchema.statics.getAvailableForRows = function(docs, forSales, cb) {
 		var Availability = MODEL('productsAvailability').Schema;
 		var GoodsOutNote = MODEL('order').Schema.GoodsOutNote;

@@ -299,26 +299,40 @@
 	</div>
 </div>
 
+<!-- __OFFER__ -->
+<div ng-show="object._id && object._id && object._id == object.order._id && module('offer')" class="row">
+	<div class="col-md-12">
+		<product-lines title="'@(ShoppingCard)'" ng-model="object.lines" for-sales="object.forSales" ng-disabled="editable" price-list="object.supplier.salesPurchases.priceList._id" warehouse="object.warehouse._id" ng-change="update()"></product-lines>
+	</div>
+</div>
+
+<!-- __OFFER__ -->
+<div ng-show="object._id && object._id && object._id == object.order._id && module('order') && !object.forSales" class="row">
+	<div class="col-md-12">
+		<product-lines title="'@(ShoppingCard)'" ng-model="object.lines" for-sales="object.forSales" ng-disabled="editable" price-list="object.supplier.salesPurchases.priceList._id" warehouse="object.warehouse._id" ng-change="update()"></product-lines>
+	</div>
+</div>
+
 <!-- __ORDER__ -->
-<div ng-hide="!object._id || object._id !==object.order._id" class="row">
+<div ng-show="module('order') && object._id && object._id == object.order._id && object.forSales" class="row">
 	<div class="col-md-12">
 		<tabset>
-		<tab>
-    	<tab-heading class="font-green"><i class="fa fa-opencart"></i> @(ShoppingCard)</tab-heading>
-			<product-lines class="font-green" ng-model="object.lines" for-sales="object.forSales" ng-disabled="editable" price-list="object.supplier.salesPurchases.priceList._id" warehouse="object.warehouse._id" ng-change="update()"></product-lines>
-		</tab>
-		<tab>
-			<tab-heading class="font-yellow-gold">@(orders:PurchasesSupplier)</tab-heading>
-			<product-lines class="font-yellow-gold" ng-model="object.orderRowSupplier"/>
-		</tab>
-		<tab>
-			<tab-heading class="font-red">@(orders:Subcontractor)</tab-heading>
-			<product-lines class="font-red" ng-model="object.orderRowSubcontractor"/>
-		</tab>
-		<tab>
-			<tab-heading class="font-blue-madison"><i class="fa fa-clock-o"></i> @(orders:Monitoring)</tab-heading>
-			<product-lines class="font-blue-madison" ng-model="object.monitoring" ng-template="/templates/core/monitoringLine.html"/>
-		</tab>
+			<tab>
+				<tab-heading> @(orders:Sales)</tab-heading>
+				<product-lines type="salesCustomer" title="'@(orders:Sales)'" ng-model="object.lines" for-sales="object.forSales" ng-disabled="editable" price-list="object.supplier.salesPurchases.priceList._id" warehouse="object.warehouse._id" ng-change="update()"></product-lines>
+			</tab>
+			<tab>
+				<tab-heading>@(orders:PurchasesSupplier)</tab-heading>
+				<product-lines type="purchasesSupplier" title="'@(orders:PurchasesSupplier)'" ng-model="object.lines1" for-sales="0" ng-disabled="editable" warehouse="object.warehouse._id" ng-change="update()"></product-lines>
+			</tab>
+			<tab>
+				<tab-heading>@(orders:Subcontractors)</tab-heading>
+				<product-lines type="purchasesSubcontractor" title="'@(orders:Subcontractors)'" ng-model="object.lines2" for-sales="0" ng-disabled="editable" warehouse="object.warehouse._id" ng-change="update()"></product-lines>
+			</tab>
+			<tab>
+				<tab-heading><i class="fa fa-clock-o"></i> @(orders:Monitoring)</tab-heading>
+				<product-lines type="timesEmployee" title="'@(orders:Monitoring)'" ng-model="object.lines3" ng-template="/templates/core/productEmployeeLine.html" ng-disabled="editable" warehouse="object.warehouse._id" ng-change="update()"></product-lines>
+			</tab>
 		</tabset>
 	</div>
 </div>
