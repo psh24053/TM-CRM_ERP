@@ -436,6 +436,7 @@ exports.latex = {
 						if (options.isDiscount)
 								stream.write(`
 \\begin{longtable}{|r|p{7.5cm}@{\\extracolsep{1mm plus 1fil}}|l|c|r|r|r|r|}
+%\\begin{longtable}{|r|p{8.5cm}@{}|l|c|r|r|r|r|}
 \\hline
 N &
 \\multicolumn{1}{c|}{D\\'esignation} &
@@ -472,6 +473,7 @@ Total HT &
 
 								stream.write(`
 \\begin{longtable}{|r|p{9cm}@{\\extracolsep{1mm plus 1fil}}|l|c|r|r|r|}
+%\\begin{longtable}{|r|p{10cm}@{}|l|c|r|r|r|r|}
 \\hline
 N &
 \\multicolumn{1}{c|}{D\\'esignation} &
@@ -584,6 +586,11 @@ Total HT &
 												break;
 
 										case 'subtotal':
+										if (options.isDiscount)
+												stream.write('\\cline{2-8}\n');
+										else
+												stream.write('\\cline{2-7}\n');
+
 												stream.write('&');
 
 												stream.write("\\specialcell[t]{\\textbf{\\textit{\\textcolor{red}{{0} : {1}}}}\\\\} &".format(self.formatter({
