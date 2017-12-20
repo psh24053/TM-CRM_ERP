@@ -119,8 +119,8 @@ MetronicApp.factory('websocketService', ['$rootScope', '$timeout', function($roo
 						_ws.onmessage = onMessage;
 						_ws.onopen = function() {
 								if (loaded) {
-										console.log("Reload");
-										$rootScope.$state.reload();
+										console.log("Reload disabled");
+										//$rootScope.$state.reload();
 								} else
 										loaded = true;
 
