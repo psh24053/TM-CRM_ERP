@@ -24,7 +24,7 @@ International Registered Trademark & Property of ToManage SAS
 "use strict";
 
 exports.name = 'utils';
-exports.version = '1.07';
+exports.version = '1.08';
 
 var _ = require('lodash'),
 		async = require('async'),
@@ -348,8 +348,14 @@ exports.sumTotal = function(lines, shipping, discount, societeId, callback) {
 								});
 						},
 						function(VATIsUsed, cb) {
-								if (!VATIsUsed)
-										return cb(null, VATIsUsed);
+								if (!VATIsUsed){
+									lines = _.map(lines, function(elem) {
+											elem.total_taxes = [];
+											return elem;
+									});
+									return cb(null, VATIsUsed);
+								}
+
 
 								var rates = [];
 
@@ -557,7 +563,7 @@ exports.sumTotal = function(lines, shipping, discount, societeId, callback) {
 
 								//Add ecotax
 								/*let ecotax = _.sum(_.filter(lines[i].total_taxes, function(tax) {
-								    return total_taxes[taxesId[tax.taxeId.toString()]].isFixValue; // Get Only EcoTax isFixValue 
+								    return total_taxes[taxesId[tax.taxeId.toString()]].isFixValue; // Get Only EcoTax isFixValue
 								}), 'value');
 
 								if (ecotax)
