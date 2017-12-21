@@ -262,6 +262,35 @@ exports.latex = {
 				"jsonDatecValue": 'dateShort',
 				"jsonDateechValue": 'dateShort',
 				"jsonToValueAddressStreet": "area",
+				"jsonCouponValue": function(self, options) {
+						console.log(options);
+						if (options.value == 'CHQ')
+								return `\\begin{minipage}[t]{0.45\\textwidth}
+\\ding{33}\\dotfill
+\\raisebox{-0.25\\baselineskip}{\\ding{34}}\\dotfill
+\\raisebox{-0.50\\baselineskip}{\\ding{35}}\\dotfill
+\\vspace{-1em}
+\\begin{center}
+\\textbf{Coupon r\\\`eglement a joindre avec vote ch\\\`eque}
+\\end{center}
+
+\\setlength\\parindent{24pt}
+
+\\indent \\jsonTitleValue : \\textbf{\\jsonRefValue}\\\\
+\\indent Montant : \\jsonAPAYERValue
+
+\\setlength\\parindent{0pt}
+
+\\ding{33}\\dotfill
+\\raisebox{-0.25\\baselineskip}{\\ding{34}}\\dotfill
+\\raisebox{-0.50\\baselineskip}{\\ding{35}}\\dotfill
+\\vspace{-1em}
+
+\\end{minipage}
+`;
+						return "";
+
+				},
 				"jsonTotalValue": function(self, options) {
 						const values = options.value;
 

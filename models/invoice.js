@@ -1503,6 +1503,9 @@ billSchema.statics.generatePdfById = function(id, model, callback) {
 																paid: {
 																		value: mode_reglement_code.values[doc.mode_reglement_code].label
 																},
+																coupon: {
+																		value: (doc.forSales == true && doc.mode_reglement_code == 'CHQ' ? 'CHQ' : "")
+																},
 																notes: {
 																		value: (doc.notes.length ? doc.notes[0].note : ""),
 																},
