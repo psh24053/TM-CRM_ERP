@@ -27,7 +27,7 @@ const moment = require('moment'),
 		path = require("path");
 
 exports.name = "bill";
-exports.version = 1.013;
+exports.version = 1.014;
 exports.enabled = true;
 exports.csv = {
 		"model": "invoice",
@@ -240,6 +240,7 @@ exports.pdfModels = [{
 		code: 'invoiceDefault',
 		module: 'bill',
 		forSales: true,
+		isDefault : true,
 		latex: 'bill.tex', //latex main file in latex directory
 		langs: [{
 				title: "Facture",
