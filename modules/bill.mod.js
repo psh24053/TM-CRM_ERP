@@ -21,7 +21,6 @@ International Registered Trademark & Property of ToManage SAS
 
 "use strict";
 
-
 const moment = require('moment'),
 		fixedWidthString = require('fixed-width-string'),
 		fs = require('fs'),
@@ -262,6 +261,7 @@ exports.latex = {
 				"jsonAPAYERValue": 'euro',
 				"jsonDatecValue": 'dateShort',
 				"jsonDateechValue": 'dateShort',
+				"jsonToValueAddressStreet": "area",
 				"jsonTotalValue": function(self, options) {
 						const values = options.value;
 

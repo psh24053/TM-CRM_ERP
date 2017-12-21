@@ -22,9 +22,15 @@
 \include{json}
 \renewcommand{\HEAD}{\jsonTitleValue \  \jsonRefValue}
 
+\newcommand\EANtm[1]{
+	\begingroup
+	\EANisbn[SC3,ISBN=#1]
+	\endgroup
+}
+
 \begin{document}
 
-\begin{tabular}{p{9cm} p{8cm}}
+\begin{tabularx}{\textwidth}{X X}
     \vspace{0pt} 
     \includegraphics[width=7.5cm]{--LOGO--}
     & 
@@ -32,10 +38,10 @@
    \raggedleft
 	%\begin{flushright}
 	\textcolor{violet}{\textsc{\Large Bon de livraison  \jsonRefValue}}\\
-	Date d'exp\'edition :  \jsonDateexpValue\\\\
-    {\small Date de commande : \textbf{ \jsonDatecValue}\\
-	Ref. commande : \jsonOrderValue\\}~\\
-\end{tabular}
+	Date d'exp\'edition :  \jsonDatexpValue\\\\
+    {\small Date de commande : \textbf{ \jsonDatecValue}}\\
+	{\small Ref. commande : \jsonOrderValue}
+\end{tabularx}
 
 %\vspace{-0.7cm}
 
@@ -50,7 +56,7 @@
 {\small Destinataire :}
 
 \begin{fminipage}
-\textbf{\large \jsonToValueName}\\
+\textbf{\large \jsonToValueAddressName}\\
 \jsonToValueAddressStreet\\
 \textsc{\jsonToValueAddressZip \ \jsonToValueAddressCity}\\
 \begin{minipage}{\textwidth}
@@ -69,26 +75,24 @@
 \begin{flushright}
 {\it Ref. commande client : \textbf{ \jsonRefClientValue}}\\
 \vspace{1em}
-{\it Livraison : \jsonDeliveryModeValue}
-{\it Date prévisionnelle : \textbf{\jsonDateexpValue}}
+{\it Livraison : \jsonDeliveryModeValue}\\
+{\it Date prévisionnelle : \textbf{\jsonDatexpValue}}
 \end{flushright}
 \end{minipage}
 
-\input{lines_delivery}
+\input{linesRef}
 
 \begin{minipage}[t]{0.50\textwidth}
-\begin{fminipage}
-\begin{tabular}{|p{3cm} r|}
+\begin{tabular}{|p{4.5cm} r|}
 
 \hline
 \input{totals}
 \hline
 
 \end{tabular}
-\end{fminipage}
 \end{minipage}
 \begin{minipage}[t]{0.50\textwidth}
-%\centerline{\EANisbn[SC3,ISBN=4-170-005151-02-8}]}
+\centerline{\EANtm{4-170-005004-00-9}}%\jsonBarcodeValue
 \end{minipage}
 
 Marchandise control\'ee

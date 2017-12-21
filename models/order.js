@@ -3136,7 +3136,7 @@ goodsInNoteSchema.statics.query = function(options, callback) {
 				});
 
 				//console.log(filterObject.$and[0]);
-				console.log(newQueryObj.$and[0]);
+				//console.log(newQueryObj.$and[0]);
 
 				var query = [{
 								$match: filterObject
@@ -3656,7 +3656,9 @@ const generateDeliveryPdf = function(id, model, callback) {
 
 										barcode += '-' + isbn(barcode);
 
-										Latex.Template(modelPdf.latex, doc.entity)
+										Latex.Template(modelPdf.latex, doc.entity, {
+														module: 'delivery'
+												})
 												.apply({
 														pdfModel: {
 																value: {
@@ -3665,7 +3667,7 @@ const generateDeliveryPdf = function(id, model, callback) {
 																}
 														},
 														ref: {
-																"value": doc.ref
+																value: doc.ref
 														},
 														bill: {
 																value: {
@@ -3692,26 +3694,22 @@ const generateDeliveryPdf = function(id, model, callback) {
 														barcode: {
 																value: barcode
 														},
-														"datec": {
-																"type": "date",
-																"value": doc.datec,
-																"format": CONFIG('dateformatShort')
+														datec: {
+																value: doc.datec
 														},
-														"dateexp": {
-																"type": "date",
-																"value": doc.datedl,
-																"format": CONFIG('dateformatShort')
+														datexp: {
+																value: doc.datedl
 														},
-														"order": {
-																"value": (doc.order && doc.order.ref ? doc.order.ref : "-")
+														order: {
+																value: (doc.order && doc.order.ref ? doc.order.ref : "-")
 														},
-														"notes": {
-																"value": (doc.notes.length ? doc.notes[0].note : "")
+														notes: {
+																value: (doc.notes.length ? doc.notes[0].note : "")
 														},
-														"lines": {
+														linesRef: {
 																value: tabLines
 														},
-														"total": {
+														total: {
 																value: tabTotal
 														}
 												})
@@ -3907,6 +3905,267 @@ var stockReturnSchema = new Schema({
 				        warehouse: { type: ObjectId, ref: 'warehouse', default: null }*/
 		}]
 });
+
+stockReturnSchema.statics.generatePdfById = function(id, model, callback) {
+		// Generation de la facture PDF et download
+		const SocieteModel = MODEL('Customers').Schema;
+		const ModelPDFModel = MODEL('modelspdf').Schema;
+
+		const self = this;
+
+		async.waterfall([
+				function(wCb) {
+						ModelPDFModel.findById(model, function(err, doc) {
+								if (err)
+										return wCb(err);
+
+								return wCb(null, doc);
+						});
+				},
+				function(model, wCb) {
+						if (model)
+								return wCb(null, model);
+
+						//Load default model
+						ModelPDFModel.findOne({
+								module: 'delivery',
+								isDefault: true
+						}, function(err, doc) {
+								if (err)
+										return wCb(err);
+
+								if (!doc)
+										return wCb("No model PDF found");
+
+								return wCb(null, doc);
+						});
+				},
+				function(modelPdf, wCb) {
+
+						self.getById(id, function(err, doc) {
+
+								const fixedWidthString = require('fixed-width-string');
+								const isbn = MODULE('utils').checksumIsbn;
+								// Generation du BL PDF et download
+								var fk_livraison;
+
+								//console.log(doc);
+
+								Dict.extrafield({
+										extrafieldName: 'BonLivraison'
+								}, function(err, doc) {
+										if (err) {
+												console.log(err);
+												return;
+										}
+
+										fk_livraison = doc;
+								});
+
+								SocieteModel.findOne({
+										_id: doc.supplier._id
+								}, function(err, societe) {
+
+										// Array of lines
+										var tabLines = [];
+
+										for (var i = 0; i < doc.lines.length; i++) {
+												//console.log(doc.orderRows[i]);
+
+												//console.log(doc.lines[i]);
+												let orderRow = _.findWhere(doc.orderRows, {
+														orderRowId: doc.lines[i]._id
+												});
+
+												if (doc.lines[i].type != 'SUBTOTAL' && doc.lines[i].qty != 0 && orderRow && orderRow.qty != 0)
+														tabLines.push({
+																type: 'product',
+																seq: orderRow.numLine || "",
+																ref: doc.lines[i].product.info.SKU.substring(0, 12),
+																label: doc.lines[i].product.info.langs[0].name,
+																description: doc.lines[i].description,
+																qty_order: doc.lines[i].qty,
+																qty: orderRow.qty,
+																unit: doc.lines[i].product.unit || "U"
+														});
+
+												/*if (doc.lines[i].product.id.pack && doc.lines[i].product.id.pack.length) {
+												 for (var j = 0; j < doc.lines[i].product.id.pack.length; j++) {
+												 tabLines.push({
+												 ref: "*" + doc.lines[i].product.id.pack[j].id.ref.substring(0, 10),
+												 description: "\\textbf{" + doc.lines[i].product.id.pack[j].id.label + "}" + (doc.lines[i].product.id.pack[j].id.description ? "\\\\" + doc.lines[i].product.id.pack[j].id.description : ""),
+												 qty_order: doc.lines[i].qty_order * doc.lines[i].product.id.pack[j].qty,
+												 qty: {value: doc.lines[i].qty * doc.lines[i].product.id.pack[j].qty, unit: (doc.lines[i].product.id.pack[j].id.unit ? " " + doc.lines[i].product.id.pack[j].id.unit : "U")},
+												 italic: true
+												 });
+												 }
+												 }
+												 tabLines.push({hline: 1});*/
+
+
+												//tab_latex += " & \\specialcell[t]{\\\\" + "\\\\} & " +   + " & " + " & " +  "\\tabularnewline\n";
+										}
+
+										// Array of totals
+										var tabTotal = [];
+
+										//Total HT
+										tabTotal.push({
+												label: "Quantité totale : ",
+												value: _.sum(doc.orderRows, function(line) {
+														return line.qty;
+												}),
+												unit: "pièce(s)"
+										});
+
+										// Poids
+										if (doc.weight)
+												tabTotal.push({
+														label: "Poids total : ",
+														value: doc.weight,
+														unit: "kg"
+												});
+
+										// 4 -> BL
+										// 5 -> RT
+										let code = 4;
+										if (doc._type == 'stockReturns')
+												code = 5;
+										var barcode = code + "-" + moment(doc.datedl).format("YY") + "0-"; + doc.ref.split('-')[1].replace('_', '-');
+										var split = doc.ref.replace('/', '-').split('-');
+										if (split.length == 2) //BL1607-02020-32
+												barcode += "00" + fixedWidthString(doc.ID, 6, {
+														padding: '0',
+														align: 'right'
+												});
+										else { // BL1607-120202
+												barcode += fixedWidthString(doc.ID, 6, {
+														padding: '0',
+														align: 'right'
+												});
+												barcode += "-" + fixedWidthString(split[2], 2, {
+														padding: '0',
+														align: 'right'
+												});
+										}
+
+										barcode += '-' + isbn(barcode);
+
+										Latex.Template(modelPdf.latex, doc.entity, {
+														module: 'stock'
+												})
+												.apply({
+														pdfModel: {
+																value: {
+																		hbuttom: doc.pdfModel.hbuttom,
+																		htop: doc.pdfModel.htop
+																}
+														},
+														ref: {
+																value: doc.ref
+														},
+														bill: {
+																value: {
+																		name: doc.address.name || doc.supplier.fullName,
+																		address: doc.address
+																}
+														},
+														to: {
+																value: {
+																		address: doc.shippingAddress,
+																		tva: societe.companyInfo.idprof6,
+																		codeClient: societe.salesPurchases.ref
+																}
+														},
+														title: {
+																value: modelPdf.langs[0].title
+														},
+														refClient: {
+																value: doc.ref_client
+														},
+														deliveryMode: {
+																value: doc.delivery_mode
+														},
+														barcode: {
+																value: barcode
+														},
+														datec: {
+																value: doc.datec
+														},
+														datexp: {
+																value: doc.datedl
+														},
+														order: {
+																value: (doc.order && doc.order.ref ? doc.order.ref : "-")
+														},
+														notes: {
+																value: (doc.notes.length ? doc.notes[0].note : "")
+														},
+														linesRef: {
+																value: tabLines
+														},
+														total: {
+																value: tabTotal
+														}
+												})
+												.on('error', wCb)
+												.finalize(function(tex) {})
+												.compile()
+												.pipe(fs.createWriteStream(F.path.root() + '/uploads/pdf/' + doc._id + "_" + modelPdf.code + ".pdf"))
+												.on('end', function() {
+														//console.log('document written');
+
+														self.update({
+																_id: doc._id,
+																'pdfs.modelPdf': modelPdf._id
+														}, {
+																$set: {
+																		'pdfModel.modelId': modelPdf._id,
+																		'pdfs.$.filename': doc.ref + modelPdf.filename,
+																		"pdfs.$.datec": new Date()
+																}
+														}, {
+																upsert: false
+														}, function(err, res) {
+																if (err)
+																		return wCb(err);
+
+																if (res && res.nModified)
+																		return wCb(); // Already exist and updated
+
+																//console.log(modelPdf);
+
+																//create new entry in order
+																self.update({
+																		_id: doc._id
+																}, {
+																		$set: {
+																				'pdfModel.modelId': modelPdf._id
+																		},
+																		$push: {
+																				"pdfs": {
+																						filename: doc.ref + modelPdf.filename,
+																						fileId: doc._id + "_" + modelPdf.code + ".pdf",
+																						modelPdf: modelPdf._id,
+																						datec: new Date()
+																				}
+																		}
+																}, {
+																		upsert: false
+																}, function(err, doc) {
+																		if (err)
+																				return wCb(err);
+																		console.log("end");
+																		wCb();
+																});
+														});
+												});
+								});
+						});
+
+				}
+		], callback);
+};
 
 // OF ordre de fabrication
 var ordersFabSchema = new Schema({
@@ -4633,7 +4892,7 @@ F.on('order:recalculateStatus', function(data, callback) {
 														var allocatedOnRow;
 														var shippedDocs;
 
-														console.log(docs);
+														//console.log(docs);
 
 														if (err)
 																return eahcCb(err);
@@ -5017,8 +5276,8 @@ F.on('order:sendDelivery', function(data) {
 		if (data.order && data.order.forSales == false)
 				OrderModel = exports.Schema.OrderSupplier;
 
-		console.log(data);
-		console.log("Update emit order sendFirstDelivery", data);
+		//console.log(data);
+		console.log("Update emit order sendFirstDelivery");
 		OrderModel.findOne({
 				_id: data.order._id,
 				isremoved: {

@@ -47,7 +47,8 @@ exports.install = function() {
 		F.route('/erp/api/bill/{id}', object.update, ['put', 'json', 'authorize'], 512);
 		F.route('/erp/api/bill', object.updateFieldsManyId, ['patch', 'json', 'authorize'], 512);
 		F.route('/erp/api/bill/{id}', object.destroy, ['delete', 'authorize']);
-		F.route('/erp/api/bill/pdf/{invoiceId}', object.generatePdf, ['put', 'authorize', 15000]);
+		F.route('/erp/api/bill/pdf/{invoiceId}', object.pdf, ['authorize']);
+		F.route('/erp/api/bill/pdf/{invoiceId}', object.generatePdf, ['put', 'authorize', 5000]);
 		F.route('/erp/api/bill/releveFacture/pdf/{societeId}', object.releve_facture, ['authorize']);
 		F.route('/erp/api/bill/download/{:id}', object.download);
 };
@@ -1209,40 +1210,35 @@ Object.prototype = {
 						return self.json(doc);
 				});
 		},
-		pdf: function(ref, self) {
+		pdf: function(ref) {
 				// Generation de la facture PDF et download
 				const InvoiceModel = MODEL('invoice').Schema;
 
-				if (!self)
-						self = this;
+				const self = this;
 
-				/*var discount = false;
-				 var cond_reglement_code = {};
-				 Dict.dict({dictName: "fk_payment_term", object: true}, function (err, docs) {
-				 cond_reglement_code = docs;
-				 });
-				 var mode_reglement_code = {};
-				 Dict.dict({dictName: "fk_paiement", object: true}, function (err, docs) {
-				 mode_reglement_code = docs;
-				 });*/
+				InvoiceModel.findOne({
+						ref: ref
+				}, function(err, doc) {
 
-				InvoiceModel.getById(ref, function(err, doc) {
-						createBill(doc, true, function(err, tex) {
-								if (err)
-										return console.log(err);
+						//if (doc.status.isPrinted == null) {
+						if (!doc.pdfs.length)
+								return self.plain("File not found : click to generate");
 
-								self.res.setHeader('Content-type', 'application/pdf');
-								Latex.Template(null, doc.entity)
-										.on('error', function(err) {
-												console.log(err);
-												self.throw500(err);
-										})
-										.compile("main", tex)
-										.pipe(self.res)
-										.on('close', function() {
-												//console.log('document written');
-										});
-						});
+						var log = {
+								date: new Date(),
+								author: self.user._id,
+								mode: 'download',
+								msg: 'PDF Telecharge par ' + self.user.username
+						};
+
+						InvoiceModel.findByIdAndUpdate(doc._id, {
+								$addToSet: {
+										history: log
+								}
+						}, function(err, doc) {});
+
+						return self.stream('application/pdf', fs.createReadStream(F.path.root() + '/uploads/pdf/' + doc.pdfs[0].fileId));
+
 				});
 		},
 		pdfAll: function() {

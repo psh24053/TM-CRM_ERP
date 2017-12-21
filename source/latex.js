@@ -222,6 +222,11 @@ Template.prototype.apply = function(handlers) {
 				return result;
 		}, {}));*/
 		this.handlers = handlers;
+		if (!this.handlers.isDiscount)
+				this.handlers.isDiscount = {
+						value: false
+				};
+
 		//console.log(this.handlers);
 
 		// if the template is already running the action is complete

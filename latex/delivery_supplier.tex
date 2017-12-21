@@ -4,7 +4,7 @@
 \newcommand{\specialcell}[2][c]{
 	\parbox[#1]{8.3cm}{#2}}
 
-\begin{tabular}{p{9cm} p{8cm}}
+\begin{tabularx}{\textwidth}{X X}
     \vspace{0pt} 
     %\includegraphics[width=7.5cm]{--LOGO--}
     & 
@@ -13,9 +13,9 @@
 	%\begin{flushright}
 	\textcolor{violet}{\textsc{\Large Bon de reception --NUM--}}\\
 	Date d'exp\'edition : --DATEEXP--\\
-    {\small Date de commande : \textbf{--DATEC--}\\
-	Ref. commande : --ORDER--\\}~\\
-\end{tabular}
+    {\small Date de commande : \textbf{--DATEC--}}\\
+	{\small	Ref. commande : --ORDER--}
+\end{tabularx}
 
 %\vspace{-0.7cm}
 

@@ -363,6 +363,7 @@ exports.latex = {
 		"formatters": {
 				"jsonDatecValue": 'dateShort',
 				"jsonDatexpValue": 'dateShort',
+				"jsonToValueAddressStreet": "area",
 				"jsonTotalValue": function(self, options) {
 						const values = options.value;
 

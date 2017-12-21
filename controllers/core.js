@@ -845,6 +845,9 @@ function getModulesById(id) {
 		const self = this;
 		const ModulesModel = MODEL('modules').Schema;
 
+		if (id == 'stockreturn')
+				id = 'stock'; // TODO fix for latex model found
+
 		ModulesModel.findById(id)
 				.populate("pdfModels")
 				.exec(function(err, result) {

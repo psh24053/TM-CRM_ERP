@@ -45,12 +45,12 @@ exports.install = function() {
 		F.route('/erp/api/delivery/dt_supplier', object.readDT_supplier, ['post', 'authorize']);
 		F.route('/erp/api/delivery/caFamily', object.caFamily, ['authorize']);
 		F.route('/erp/api/delivery/statistic', object.statistic, ['post', 'json', 'authorize']);
-		//F.route('/erp/api/delivery/pdf/', object.pdfAll, ['post', 'json', 'authorize', 60000]);
+		F.route('/erp/api/delivery/pdf/', object.pdfAll, ['post', 'json', 'authorize', 60000]);
 		F.route('/erp/api/delivery/csv/', object.csvAll, ['post', 'json', 'authorize']);
 		F.route('/erp/api/delivery/mvt/', object.csvMvt, ['post', 'json', 'authorize']);
-		//F.route('/erp/api/delivery/pdf/{deliveryId}/{version}', function(ref, version) {
-		//		object.pdf(ref + '/' + version, this);
-		//}, ['authorize']);
+		F.route('/erp/api/delivery/pdf/{deliveryId}/{version}', function(ref, version) {
+				object.pdf(ref + '/' + version, this);
+		}, ['authorize']);
 		F.route('/erp/api/delivery/pdf/{deliveryId}', object.generatePdf, ['put', 'authorize']);
 
 		// recupere la liste des courses pour verification
@@ -623,6 +623,14 @@ Object.prototype = {
 										//update inventory IN
 										if (body.Status == 'DRAFT')
 												return wCb(null, doc);
+
+										F.emit('order:update', {
+												userId: self.user._id.toString(),
+												order: {
+														_id: doc._id.toString()
+												},
+												route: self.query.stockReturn == 'true' ? 'stockreturn' : 'delivery'
+										}, DeliveryModel);
 
 										if (doc.forSales == true || doc.status.isInventory)
 												return wCb(null, doc);
@@ -1231,34 +1239,42 @@ Object.prototype = {
 				}
 
 
-				DeliveryModel.getById(ref, function(err, doc) {
+				DeliveryModel.findOne({
+						ref: ref
+				}, function(err, doc) {
 
-						if (doc.status.isPrinted == null) {
-								doc.status.isPrinted = new Date();
-								doc.status.printedById = self.user._id;
-								DeliveryModel.findByIdAndUpdate(doc._id, doc, function(err, doc) {});
-						}
+						//if (doc.status.isPrinted == null) {
+						if (!doc.pdfs.length)
+								return self.plain("File not found : click to generate");
 
-						if (doc.pdfs.length)
-								return self.stream('application/pdf', fs.createReadStream(F.path.root() + '/uploads/pdf/' + doc.pdfs[0].fileId));
+						doc.status.isPrinted = new Date();
+						doc.status.printedById = self.user._id;
+						DeliveryModel.findByIdAndUpdate(doc._id, doc, function(err, doc) {});
+						//}
 
-						return self.plain("File not found : click to generate");
+						return self.stream('application/pdf', fs.createReadStream(F.path.root() + '/uploads/pdf/' + doc.pdfs[0].fileId));
 				});
 		},
 		pdfAll: function() {
-				var self = this;
+				const self = this;
+				const PDFMerge = require('pdf-merge');
 
 				var entity = this.body.entity;
 
 				// Generation de la facture PDF et download
 				var DeliveryModel = MODEL('order').Schema.Order;
 
-				var tabTex = [];
+				var tab = [];
 
 				DeliveryModel.find({
 								Status: "VALIDATED",
 								_id: {
 										$in: self.body.id
+								}
+						}, "pdfs ID ref", {
+								sort: {
+										ID: 1,
+										ref: 1
 								}
 						})
 						.exec(function(err, deliveries) {
@@ -1270,76 +1286,24 @@ Object.prototype = {
 												error: "No deliveries"
 										});
 
-								async.forEachLimit(deliveries, 30, function(delivery, cb) {
-										DeliveryModel.getById(delivery._id, function(err, delivery) {
+								async.forEachSeries(deliveries, function(delivery, cb) {
+										if (delivery.pdfs.length)
+												tab.push(F.path.root() + '/uploads/pdf/' + delivery.pdfs[0].fileId);
 
-												if (delivery.status.isPrinted == null) {
-														delivery.status.isPrinted = new Date();
-														delivery.status.printedById = self.user._id;
-														DeliveryModel.findByIdAndUpdate(delivery._id, delivery, function(err, doc) {});
-												}
-
-												createDelivery(delivery, function(err, tex) {
-														if (err)
-																return cb(err);
-														//console.log(tex);
-
-														tabTex.push({
-																id: delivery.ref,
-																tex: tex
-														});
-														cb();
-												});
-										});
+										cb();
 								}, function(err) {
 										if (err)
 												return console.log(err);
 
-										var texOutput = "";
-
-										function compare(x, y) {
-												var a = parseInt(x.id.substring(x.id.length - 6, x.id.length), 10);
-												var b = parseInt(y.id.substring(y.id.length - 6, y.id.length), 10);
-
-												if (a < b)
-														return -1;
-												if (a > b)
-														return 1;
-												return 0;
-										}
-
-										tabTex.sort(compare);
-
-										for (var i = 0; i < tabTex.length; i++) {
-												if (i !== 0) {
-														texOutput += "\\newpage\n\n";
-														texOutput += "\\setcounter{page}{1}\n\n";
-												}
-
-												texOutput += tabTex[i].tex;
-										}
-
-										//console.log(texOutput);
-
-										F.emit('notify:controllerAngular', {
-												userId: null,
-												route: 'delivery'
-												// _id: doc._id.toString(),
-												//message: "Livraison " + doc.ref + ' modifiee.'
-										});
-
-										self.res.setHeader('Content-type', 'application/pdf');
-										self.res.setHeader('x-filename', 'deliveries.pdf');
-										Latex.Template(null, entity)
-												.on('error', function(err) {
-														console.log(err);
-														self.throw500(err);
+										PDFMerge(tab, {
+														output: 'Stream'
 												})
-												.compile("main", texOutput)
-												.pipe(self.res)
-												.on('close', function() {
-														//console.log('documents written');
+												.then((stream) => {
+														self.stream('application/pdf', stream, 'deliveries.pdf', {
+																'x-filename': 'deliveries.pdf'
+														})
 												});
+
 								});
 						});
 		},
@@ -1675,9 +1639,9 @@ Object.prototype = {
 								}
 						}
 				], function(err, doc) {
-						if (err) {
+						if (err)
 								return console.log(err);
-						}
+
 
 						//console.log(doc);
 						self.json(doc);
@@ -2439,7 +2403,7 @@ function createDelivery(doc, callback) {
 		if (doc.forSales == false)
 				model = "delivery_supplier.tex";
 
-		console.log(doc._type);
+		//console.log(doc._type);
 		if (doc._type == 'stockReturns')
 				model = "stockreturn.tex";
 

@@ -244,7 +244,7 @@ MetronicApp.controller('OrdersController', ['$scope', '$rootScope', '$http', '$m
 
 						}).success(function(data, status) {
 								$scope.$dict.module = data;
-								console.log(data);
+								console.log($scope.module(), data);
 						});
 
 						$scope.findOne();

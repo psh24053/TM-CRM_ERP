@@ -32,7 +32,7 @@
 
 \begin{document}
 
-\begin{tabular}{p{9cm} p{8cm}}
+\begin{tabularx}{\textwidth}{X X}
     \vspace{0pt} 
     %\includegraphics[width=8cm]{logo.jpg}
     & 
@@ -41,9 +41,9 @@
 	%\begin{flushright}
 	\textcolor{violet}{\textsc{\Large Facture fournisseur \jsonRefValue}}\\
 	Date de facture : \jsonDatecValue\\
-	{\small Date d'échéance : \textbf{\jsonDateechValue}\\
-	Ref. commande : \jsonRefClientValue}~\\
-\end{tabular}
+	{\small Date d'échéance : \textbf{\jsonDateechValue}}\\
+	{\small	Ref. commande : \jsonRefClientValue}
+\end{tabularx}
 
 %\vspace{-0.7cm}
 

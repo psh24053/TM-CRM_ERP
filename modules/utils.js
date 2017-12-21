@@ -656,14 +656,19 @@ exports.checksumIsbn = function(isbn) {
 				return null;
 
 		var chars = isbn.split('');
-		//if (chars[9].toUpperCase() == 'X')
-		//    chars[9] = 10;
+		if (chars[9].toUpperCase() == 'X')
+				chars[9] = 10;
 
 		var sum = 0;
-		for (var i = 0; i < chars.length; i++)
-				sum += parseInt(chars[i]) * (i % 2 == 0 ? 3 : 1);
+		for (var i = 0; i < chars.length; i++) {
+				sum += parseInt(chars[i]) * (i % 2 == 0 ? 1 : 3);
+		}
 
-		return sum % 10;
+		var key = sum % 10;
+		if (key == 0)
+				return 0;
+
+		return 10 - key;
 };
 
 exports.Status = function(value, statusList) {
