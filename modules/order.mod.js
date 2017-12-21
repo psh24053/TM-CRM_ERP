@@ -431,10 +431,10 @@ exports.latex = {
 
 						if (options.isDiscount)
 								//ligne de tableau avec \
-								stream.write('\\newcommand{\\specialcell}[2][c]{\\parbox[#1]{7.2cm}{#2}}\n');
+								stream.write('\\newcommand{\\specialcell}[2][c]{\\parbox[#1]{7.7cm}{#2}}\n');
 
 						else
-								stream.write('\\newcommand{\\specialcell}[2][c]{\\parbox[#1]{8.7cm}{#2}}\n');
+								stream.write('\\newcommand{\\specialcell}[2][c]{\\parbox[#1]{9.2cm}{#2}}\n');
 
 						stream.write(`
 \\setlength\\LTleft{0pt}
@@ -446,7 +446,7 @@ exports.latex = {
 
 						if (options.isDiscount)
 								stream.write(`
-\\begin{longtable}{|r|p{7.5cm}@{\\extracolsep{1mm plus 1fil}}|r|c|r|r|r|r|}
+\\begin{longtable}{|r|p{8cm}@{\\extracolsep{1mm plus 1fil}}|r|c|r|r|r|r|}
 %\\begin{longtable}{|r|p{8.5cm}@{}|r|c|r|r|r|r|}
 \\hline
 N &
@@ -483,7 +483,7 @@ Total HT &
 						else
 
 								stream.write(`
-\\begin{longtable}{|r|p{9cm}@{\\extracolsep{1mm plus 1fil}}|r|c|r|r|r|}
+\\begin{longtable}{|r|p{9.5cm}@{\\extracolsep{1mm plus 1fil}}|r|c|r|r|r|}
 %\\begin{longtable}{|r|p{10cm}@{}|r|c|r|r|r|r|}
 \\hline
 N &
