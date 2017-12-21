@@ -1295,8 +1295,24 @@ billSchema.statics.generatePdfById = function(id, model, callback) {
 		const self = this;
 
 		async.waterfall([
+
 				function(wCb) {
 						ModelPDFModel.findById(model, function(err, doc) {
+								if (err)
+										return wCb(err);
+
+								return wCb(null, doc);
+						});
+				},
+				function(model, wCb) {
+						if (model)
+								return wCb(null, model);
+
+						//Load default model
+						ModelPDFModel.findOne({
+								module: 'bill',
+								isDefault: true
+						}, function(err, doc) {
 								if (err)
 										return wCb(err);
 

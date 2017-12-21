@@ -240,7 +240,7 @@ exports.pdfModels = [{
 		code: 'invoiceDefault',
 		module: 'bill',
 		forSales: true,
-		isDefault : true,
+		isDefault: true,
 		latex: 'bill.tex', //latex main file in latex directory
 		langs: [{
 				title: "Facture",
