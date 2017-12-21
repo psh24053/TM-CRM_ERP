@@ -1582,6 +1582,9 @@ orderCustomerSchema.methods.unsetAllocated = function(callback) {
 						return callback();
 
 				async.eachSeries(rows, function(elem, eachCb) {
+						if (!elem.product)
+								return eachCb();
+
 						Availability.update({
 										product: elem.product,
 										'orderRows.orderRowId': elem._id
@@ -1596,7 +1599,6 @@ orderCustomerSchema.methods.unsetAllocated = function(callback) {
 										upsert: false
 								},
 								function(err) {
-
 										F.emit('productsAvailability:recalculateOnHand', {
 												product: {
 														_id: elem.product.toString()

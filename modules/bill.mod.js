@@ -373,7 +373,7 @@ exports.latex = {
 
 						if (options.isDiscount)
 								stream.write(`
-\\begin{longtable}{|r|p{8.0cm}@{\\extracolsep{1mm plus 1fil}}|l|c|r|r|r|r|}
+\\begin{longtable}{|r|p{8.0cm}@{\\extracolsep{1mm plus 1fil}}|r|c|r|r|r|r|}
 \\hline
 \\multicolumn{1}{|c}{N} &
 \\multicolumn{1}{c|}{D\\'esignation} &
@@ -408,7 +408,7 @@ Total HT &
 						else
 
 								stream.write(`
-\\begin{longtable}{|r|p{10cm}@{\\extracolsep{1mm plus 1fil}}|l|c|r|r|r|}
+\\begin{longtable}{|r|p{10cm}@{\\extracolsep{1mm plus 1fil}}|r|c|r|r|r|}
 \\hline
 \\multicolumn{1}{|c}{N} &
 \\multicolumn{1}{c|}{D\\'esignation} &
@@ -470,7 +470,7 @@ Total HT &
 												}), self.formatter({
 														value: v.qty,
 														type: 'number',
-														precision: 3
+														precision: 2
 												})));
 												stream.write("{0} &".format(self.formatter({
 														value: v.pu_ht,

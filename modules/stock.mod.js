@@ -221,12 +221,12 @@ N &
 												}), self.formatter({
 														value: v.qty_order,
 														type: 'number',
-														precision: 3
+														precision: 2
 												})));
 												stream.write("{0}".format(self.formatter({
 														value: v.qty,
 														type: 'number',
-														precision: 3
+														precision: 2
 												})));
 
 
