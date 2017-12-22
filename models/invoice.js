@@ -1455,8 +1455,8 @@ billSchema.statics.generatePdfById = function(id, model, callback) {
 														case "CHQ":
 																if (doc.bank_reglement) // Bank specific for payment
 																		reglement = "\n" + (bank.invoice ? bank.invoice : "");
-																else
-																		reglement = "A l'ordre de --ENTITY--";
+																//else
+																//		reglement = "A l'ordre de --ENTITY--";
 																break;
 												}
 
